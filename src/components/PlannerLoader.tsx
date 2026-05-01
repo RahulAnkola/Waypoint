@@ -1,0 +1,41 @@
+"use client";
+
+import { useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+import type { Trip, PlaceResult } from "@/types";
+
+interface Props {
+  tripId: string;
+  onLoaded: (data: {
+    name: string;
+    origin: PlaceResult;
+    destination: PlaceResult;
+    waypoints: PlaceResult[];
+    departure_time: string | null;
+  }) => void;
+}
+
+export default function PlannerLoader({ tripId, onLoaded }: Props) {
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from("trips")
+      .select("*")
+      .eq("id", tripId)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          const trip = data as Trip;
+          onLoaded({
+            name: trip.name,
+            origin: trip.origin,
+            destination: trip.destination,
+            waypoints: trip.waypoints,
+            departure_time: trip.departure_time,
+          });
+        }
+      });
+  }, [tripId, onLoaded]);
+
+  return null;
+}
