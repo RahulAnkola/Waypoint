@@ -125,10 +125,14 @@ function TripCard({
           {isOwner && (
             <button
               onClick={handleShare}
-              className={`p-1.5 rounded-lg transition-all ${copied ? "text-emerald-500 bg-emerald-50" : "text-gray-300 hover:text-blue-500 hover:bg-blue-50"}`}
+              className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all text-xs font-medium ${copied ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-400" : "text-gray-300 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 p-1.5"}`}
               title={trip.share_code ? "Copy share link" : "Share trip"}
             >
-              {copied ? <Check className="w-3.5 h-3.5" /> : <Share2 className="w-3.5 h-3.5" />}
+              {copied ? (
+                <><Check className="w-3.5 h-3.5 shrink-0" /><span>Copied!</span></>
+              ) : (
+                <Share2 className="w-3.5 h-3.5" />
+              )}
             </button>
           )}
           {/* Delete/Leave — available to everyone */}

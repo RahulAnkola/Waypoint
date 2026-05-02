@@ -666,10 +666,7 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
           {/* Checklist */}
           <ChecklistPanel tripId={trip.id} initial={trip.checklist ?? null} />
 
-          {/* Share — organiser only */}
-          {isOwner && <SharePanel trip={trip} />}
-
-          {/* Footer action */}
+          {/* Edit in Planner */}
           <Link
             href={`/planner?trip=${trip.id}`}
             className="flex items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 py-3 rounded-xl font-semibold text-sm hover:bg-blue-100 dark:hover:bg-blue-900/50 active:scale-[0.98] transition-all border border-blue-100 dark:border-blue-800"
@@ -677,6 +674,9 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
             <MapPin className="w-4 h-4" />
             Edit in Planner
           </Link>
+
+          {/* Share — organiser only */}
+          {isOwner && <SharePanel trip={trip} />}
 
           {/* Back link — only visible in the sidebar on desktop */}
           <Link
