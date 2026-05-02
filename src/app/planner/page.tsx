@@ -47,6 +47,7 @@ const clampSidebarWidth = (w: number) =>
 
 const TripMap = dynamic(() => import("@/components/TripMap"), { ssr: false });
 const TollBadge = dynamic(() => import("@/components/TollBadge"), { ssr: false });
+const AiChat = dynamic(() => import("@/components/AiChat"), { ssr: false });
 import { fetchTollEstimate } from "@/lib/tollUtils";
 const LIBRARIES: ("places" | "geometry")[] = ["places"];
 
@@ -258,6 +259,7 @@ function PlannerInner() {
   const [sidebarWidth, setSidebarWidth] = useState<number>(SIDEBAR_DEFAULT_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
   const layoutRef = useRef<HTMLDivElement | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Hydrate from localStorage after mount (avoids SSR mismatch).
   useEffect(() => {
@@ -374,6 +376,34 @@ function PlannerInner() {
   const arrivalTime = departureTime && totalSeconds > 0
     ? computeArrival(departureTime, totalSeconds)
     : undefined;
+
+  const tripContext = useMemo(() => {
+    if (stops.length < 2) return {};
+    const totalH = Math.floor(totalSeconds / 3600);
+    const totalM = Math.round((totalSeconds % 3600) / 60);
+    const legs = legInfos.map((leg) => {
+      const sel = selectedRoutePerLeg[leg.legIndex] ?? 0;
+      const route = leg.routes[sel];
+      return {
+        from: leg.from.split(",")[0],
+        to: leg.to.split(",")[0],
+        duration: route?.duration ?? "",
+        distance: route?.distance ?? "",
+        route: route?.summary ?? "",
+      };
+    });
+    return {
+      tripName: tripName || undefined,
+      origin: stops[0].address,
+      destination: stops[stops.length - 1].address,
+      stops: stops.slice(1, -1).map(s => s.address),
+      departureTime: departureTime ? (() => { const [h, m] = departureTime.split(":").map(Number); return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`; })() : undefined,
+      departureDate: departureDate || undefined,
+      totalDuration: totalSeconds > 0 ? (totalH > 0 ? `${totalH}h ${totalM}m` : `${totalM}m`) : undefined,
+      totalDistance: legs.map(l => l.distance).filter(Boolean).join(" + ") || undefined,
+      legs,
+    };
+  }, [stops, legInfos, selectedRoutePerLeg, totalSeconds, tripName, departureTime, departureDate]);
 
   const [activeWpId, setActiveWpId] = useState<string | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -851,7 +881,7 @@ function PlannerInner() {
       </div>
 
       {/* Map */}
-      <div className="flex-1 relative">
+      <div ref={mapContainerRef} className="flex-1 relative">
         <TripMap
           stops={stops}
           departureTime={departureTime}
@@ -861,6 +891,9 @@ function PlannerInner() {
           onLegRouteSelect={handleLegRouteSelect}
           onAllLegsLoaded={handleAllLegsLoaded}
         />
+        {stops.length >= 2 && (
+          <AiChat tripContext={tripContext} containerRef={mapContainerRef} />
+        )}
       </div>
     </div>
   );
