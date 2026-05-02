@@ -619,6 +619,15 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
         {/* ══ RIGHT: sidebar ══ */}
         <div className="mt-8 lg:mt-0 space-y-5 lg:sticky lg:top-24">
 
+          {/* Edit in Planner */}
+          <Link
+            href={`/planner?trip=${trip.id}`}
+            className="flex items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 py-3 rounded-xl font-semibold text-sm hover:bg-blue-100 dark:hover:bg-blue-900/50 active:scale-[0.98] transition-all border border-blue-100 dark:border-blue-800"
+          >
+            <MapPin className="w-4 h-4" />
+            Edit in Planner
+          </Link>
+
           {/* Maps section */}
           <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm p-4">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
@@ -665,15 +674,6 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
 
           {/* Checklist */}
           <ChecklistPanel tripId={trip.id} initial={trip.checklist ?? null} />
-
-          {/* Edit in Planner */}
-          <Link
-            href={`/planner?trip=${trip.id}`}
-            className="flex items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 py-3 rounded-xl font-semibold text-sm hover:bg-blue-100 dark:hover:bg-blue-900/50 active:scale-[0.98] transition-all border border-blue-100 dark:border-blue-800"
-          >
-            <MapPin className="w-4 h-4" />
-            Edit in Planner
-          </Link>
 
           {/* Share — organiser only */}
           {isOwner && <SharePanel trip={trip} />}
