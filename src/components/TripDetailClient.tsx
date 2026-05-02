@@ -12,6 +12,8 @@ import { createClient } from "@/lib/supabase/client";
 import { getDistanceUnitLocal, formatStoredDistance } from "@/lib/mapsUtils";
 import MapsButton from "@/components/MapsButton";
 import WeatherBadge from "@/components/WeatherBadge";
+import TollBadge from "@/components/TollBadge";
+import { fetchTollEstimate } from "@/lib/tollUtils";
 
 /* ─── helpers ─── */
 function formatTime12(t: string): string {
@@ -329,6 +331,40 @@ function SharePanel({ trip }: { trip: Trip }) {
   );
 }
 
+/* ─── Trip-level toll total ─── */
+function TripTollTotal({ stops }: { stops: { lat: number; lng: number }[] }) {
+  const [total, setTotal] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (stops.length < 2) { setLoading(false); return; }
+    let cancelled = false;
+    const legs = stops.slice(0, -1).map((from, i) =>
+      fetchTollEstimate(from.lat, from.lng, stops[i + 1].lat, stops[i + 1].lng)
+    );
+    Promise.all(legs).then((results) => {
+      if (cancelled) return;
+      const sum = results.reduce((acc, r) => acc + (r?.amount ?? 0), 0);
+      const anyTolls = results.some((r) => r?.hasTolls);
+      setTotal(anyTolls ? parseFloat(sum.toFixed(2)) : 0);
+      setLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, [stops]);
+
+  if (loading) return <span className="inline-block h-7 w-24 bg-gray-100 dark:bg-gray-700 rounded-full animate-pulse" />;
+  if (total === null) return null;
+  return (
+    <span className={`text-sm font-semibold px-3 py-1.5 rounded-full border flex items-center gap-1.5 ${
+      total > 0
+        ? "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800"
+        : "bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-600"
+    }`}>
+      💰 {total > 0 ? `~$${total.toFixed(2)} tolls` : "No tolls"}
+    </span>
+  );
+}
+
 /* ─── main component ─── */
 export default function TripDetailClient({ trip }: { trip: Trip }) {
   const stops = [trip.origin, ...trip.waypoints, trip.destination];
@@ -436,25 +472,31 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
 
       {/* ── Summary pills (full width) ── */}
       {legRoutes.length > 0 && (
-        <div className="flex gap-2 flex-wrap mb-6">
-          <span className="bg-blue-50 text-blue-700 text-sm font-semibold px-3 py-1.5 rounded-full border border-blue-100">
-            {totalH > 0 ? `${totalH}h ${totalM}m` : `${totalM}m`} drive
-          </span>
-          <span className="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-semibold px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-600">
-            {totalDistStr} total
-          </span>
-          {stops.length > 1 && (
+        <>
+          <div className="flex gap-2 flex-wrap mb-2">
+            <span className="bg-blue-50 text-blue-700 text-sm font-semibold px-3 py-1.5 rounded-full border border-blue-100">
+              {totalH > 0 ? `${totalH}h ${totalM}m` : `${totalM}m`} drive
+            </span>
             <span className="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-semibold px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-600">
-              {stops.length} stops · {legCount} leg{legCount > 1 ? "s" : ""}
+              {totalDistStr} total
             </span>
-          )}
-          {depTime && stopTimes.length > 0 && (
-            <span className="bg-indigo-50 text-indigo-700 text-sm font-semibold px-3 py-1.5 rounded-full border border-indigo-100 flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5" />
-              {formatTime12(depTime)} → {formatTime12(stopTimes[stopTimes.length - 1])}
-            </span>
-          )}
-        </div>
+            {stops.length > 1 && (
+              <span className="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-semibold px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-600">
+                {stops.length} stops · {legCount} leg{legCount > 1 ? "s" : ""}
+              </span>
+            )}
+            {depTime && stopTimes.length > 0 && (
+              <span className="bg-indigo-50 text-indigo-700 text-sm font-semibold px-3 py-1.5 rounded-full border border-indigo-100 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5" />
+                {formatTime12(depTime)} → {formatTime12(stopTimes[stopTimes.length - 1])}
+              </span>
+            )}
+            <TripTollTotal stops={stops} />
+          </div>
+          <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-5">
+            Toll estimates are approximate and may vary. Actual tolls depend on vehicle class and payment method.
+          </p>
+        </>
       )}
 
       {/* ── Two-column grid on large screens ── */}
@@ -537,7 +579,14 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
                                 <p className={`text-sm font-semibold truncate ${legDone ? "text-emerald-700" : "text-gray-800 dark:text-gray-100"}`}>
                                   via {leg.summary}
                                 </p>
-                                <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5">{formatStoredDistance(leg.distance, distanceUnit)} · {leg.duration}</p>
+                                <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                                  <span>{formatStoredDistance(leg.distance, distanceUnit)} · {leg.duration}</span>
+                                  <TollBadge
+                                    originLat={stop.lat} originLng={stop.lng}
+                                    destLat={stops[i + 1].lat} destLng={stops[i + 1].lng}
+                                    compact
+                                  />
+                                </p>
                               </div>
                             </div>
                             <MapsButton

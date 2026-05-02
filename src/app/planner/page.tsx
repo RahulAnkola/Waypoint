@@ -45,6 +45,7 @@ const clampSidebarWidth = (w: number) =>
   Math.max(SIDEBAR_MIN_WIDTH, Math.min(SIDEBAR_MAX_WIDTH, w));
 
 const TripMap = dynamic(() => import("@/components/TripMap"), { ssr: false });
+const TollBadge = dynamic(() => import("@/components/TollBadge"), { ssr: false });
 const LIBRARIES: ("places" | "geometry")[] = ["places"];
 
 function buildGoogleMapsUrl(stops: PlaceResult[]): string {
@@ -592,8 +593,15 @@ function PlannerInner() {
                     </div>
 
                     {leg.routes.length === 1 ? (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 px-1">
-                        via {selRoute?.summary} · {selRoute?.duration} · {selRoute?.distance}
+                      <p className="text-xs text-gray-500 dark:text-gray-400 px-1 flex items-center gap-1.5 flex-wrap">
+                        <span>via {selRoute?.summary} · {selRoute?.duration} · {selRoute?.distance}</span>
+                        {stops[leg.legIndex] && stops[leg.legIndex + 1] && (
+                          <TollBadge
+                            originLat={stops[leg.legIndex].lat} originLng={stops[leg.legIndex].lng}
+                            destLat={stops[leg.legIndex + 1].lat} destLng={stops[leg.legIndex + 1].lng}
+                            compact
+                          />
+                        )}
                       </p>
                     ) : (
                       <div className="space-y-1">
@@ -611,6 +619,15 @@ function PlannerInner() {
                             <span className="shrink-0 opacity-80">{r.duration}</span>
                           </button>
                         ))}
+                        {stops[leg.legIndex] && stops[leg.legIndex + 1] && (
+                          <div className="pt-1 px-1">
+                            <TollBadge
+                              originLat={stops[leg.legIndex].lat} originLng={stops[leg.legIndex].lng}
+                              destLat={stops[leg.legIndex + 1].lat} destLng={stops[leg.legIndex + 1].lng}
+                              compact
+                            />
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -647,6 +664,22 @@ function PlannerInner() {
                       <p className="text-[10px] text-blue-500 dark:text-blue-400 font-bold uppercase tracking-wide">Arrive around</p>
                       <p className="text-lg font-extrabold text-blue-900 dark:text-blue-200">{arrivalTime}</p>
                     </div>
+                  </div>
+                )}
+                {stops.length >= 2 && (
+                  <div className="mt-3 pt-3 border-t border-blue-100 dark:border-blue-800">
+                    <p className="text-[10px] text-blue-500 dark:text-blue-400 font-bold uppercase tracking-wide mb-1">Est. tolls</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {stops.slice(0, -1).map((from, i) => (
+                        <TollBadge
+                          key={i}
+                          originLat={from.lat} originLng={from.lng}
+                          destLat={stops[i + 1].lat} destLng={stops[i + 1].lng}
+                          compact
+                        />
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-blue-400 dark:text-blue-500 mt-1.5">Estimates only · actual tolls may vary</p>
                   </div>
                 )}
               </div>
