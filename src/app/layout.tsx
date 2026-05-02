@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import ScrollProgress from "@/components/ScrollProgress";
 import ThemeProvider from "@/components/ThemeProvider";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -24,6 +25,7 @@ export default function RootLayout({
           <ScrollProgress />
           <Navbar />
           <main>{children}</main>
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
