@@ -9,7 +9,8 @@ import PlannerLoader from "@/components/PlannerLoader";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import type { PlaceResult, LegInfo, LegRoute, DistanceUnit } from "@/types";
-import { getDistanceUnitLocal, formatStoredDistance } from "@/lib/mapsUtils";
+import { getDistanceUnitLocal, formatStoredDistance, getMapsPreference, buildMapsUrl } from "@/lib/mapsUtils";
+import type { MapsApp } from "@/lib/mapsUtils";
 import {
   Plus, Trash2, ExternalLink, Save, Loader2,
   AlertCircle, CheckCircle2, Clock, Navigation,
@@ -46,6 +47,7 @@ const clampSidebarWidth = (w: number) =>
 
 const TripMap = dynamic(() => import("@/components/TripMap"), { ssr: false });
 const TollBadge = dynamic(() => import("@/components/TollBadge"), { ssr: false });
+import { fetchTollEstimate } from "@/lib/tollUtils";
 const LIBRARIES: ("places" | "geometry")[] = ["places"];
 
 function buildGoogleMapsUrl(stops: PlaceResult[]): string {
@@ -179,6 +181,39 @@ function SortableWaypoint({
   );
 }
 
+function PlannerTollTotal({
+  legs,
+}: {
+  legs: { originLat: number; originLng: number; destLat: number; destLng: number; durationSeconds: number }[];
+}) {
+  const [total, setTotal] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!legs.length) { setLoading(false); return; }
+    let cancelled = false;
+    Promise.all(
+      legs.map(l => fetchTollEstimate(l.originLat, l.originLng, l.destLat, l.destLng, l.durationSeconds))
+    ).then((results) => {
+      if (cancelled) return;
+      const sum = results.reduce((acc, r) => acc + (r?.amount ?? 0), 0);
+      setTotal(parseFloat(sum.toFixed(2)));
+      setLoading(false);
+    });
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [legs.map(l => `${l.originLat.toFixed(3)},${l.originLng.toFixed(3)},${l.durationSeconds}`).join("|")]);
+
+  if (loading) return <span className="inline-block h-4 w-20 bg-blue-100 dark:bg-blue-800 rounded-full animate-pulse" />;
+  if (total === null) return null;
+
+  return (
+    <span className={`text-xl font-extrabold ${total > 0 ? "text-amber-700 dark:text-amber-300" : "text-blue-900 dark:text-blue-200"}`}>
+      {total > 0 ? `~$${total.toFixed(2)}` : "No tolls"}
+    </span>
+  );
+}
+
 function PlannerInner() {
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
@@ -204,6 +239,7 @@ function PlannerInner() {
   const [selectedRoutePerLeg, setSelectedRoutePerLeg] = useState<number[]>([]);
   const [savedLegRoutes, setSavedLegRoutes] = useState<LegRoute[]>([]);
   const [distanceUnit, setDistanceUnit] = useState<DistanceUnit>("mi");
+  const [mapsApp, setMapsApp] = useState<MapsApp>("google");
   const [user, setUser] = useState<User | null>(null);
   const [saving, setSaving] = useState(false);
   const [savingNew, setSavingNew] = useState(false);
@@ -225,6 +261,8 @@ function PlannerInner() {
       }
     } catch { /* ignore */ }
     setDistanceUnit(getDistanceUnitLocal());
+    const pref = getMapsPreference();
+    setMapsApp(pref === "ask" ? "google" : (pref as MapsApp));
   }, []);
 
   // Persist whenever the user finishes adjusting.
@@ -668,21 +706,17 @@ function PlannerInner() {
                     </div>
                   </div>
                 )}
-                {stops.length >= 2 && (
+                {stops.length >= 2 && legInfos.length > 0 && (
                   <div className="mt-3 pt-3 border-t border-blue-100 dark:border-blue-800">
                     <p className="text-[10px] text-blue-500 dark:text-blue-400 font-bold uppercase tracking-wide mb-1">Est. tolls</p>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {stops.slice(0, -1).map((from, i) => (
-                        <TollBadge
-                          key={i}
-                          originLat={from.lat} originLng={from.lng}
-                          destLat={stops[i + 1].lat} destLng={stops[i + 1].lng}
-                          targetDurationSeconds={legInfos[i]?.routes[selectedRoutePerLeg[i] ?? 0]?.durationSeconds ?? 0}
-                          compact
-                        />
-                      ))}
-                    </div>
-                    <p className="text-[10px] text-blue-400 dark:text-blue-500 mt-1.5">Estimates only · actual tolls may vary</p>
+                    <PlannerTollTotal
+                      legs={stops.slice(0, -1).map((from, i) => ({
+                        originLat: from.lat, originLng: from.lng,
+                        destLat: stops[i + 1].lat, destLng: stops[i + 1].lng,
+                        durationSeconds: legInfos[i]?.routes[selectedRoutePerLeg[i] ?? 0]?.durationSeconds ?? 0,
+                      }))}
+                    />
+                    <p className="text-[10px] text-blue-400 dark:text-blue-500 mt-1">Estimates only · actual tolls may vary</p>
                   </div>
                 )}
               </div>
@@ -692,11 +726,20 @@ function PlannerInner() {
 
         {/* Action bar */}
         <div className="p-5 border-t border-gray-100 dark:border-gray-700 space-y-3 bg-gray-50/50 dark:bg-gray-900/50 animate-fade-in">
-          <button type="button" onClick={() => window.open(buildGoogleMapsUrl(stops), "_blank")} disabled={!canOpenMaps}
-            className="w-full flex items-center justify-center gap-2 bg-gray-900 text-white py-3 rounded-xl font-semibold text-sm hover:bg-gray-800 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm">
+          <button
+            type="button"
+            onClick={() => window.open(buildMapsUrl(mapsApp, stops), "_blank", "noopener,noreferrer")}
+            disabled={!canOpenMaps}
+            className="w-full flex items-center justify-center gap-2 bg-gray-900 text-white py-3 rounded-xl font-semibold text-sm hover:bg-gray-800 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+          >
             <ExternalLink className="w-4 h-4" />
-            Open in Google Maps
+            Open in {mapsApp === "apple" ? "Apple Maps" : mapsApp === "waze" ? "Waze" : "Google Maps"}
           </button>
+          {mapsApp === "waze" && stops.length > 2 && (
+            <p className="text-[11px] text-amber-600 dark:text-amber-400 text-center">
+              ⚠️ Waze only supports origin → destination. Intermediate stops are ignored.
+            </p>
+          )}
 
           {user ? (
             <div className="space-y-2">
