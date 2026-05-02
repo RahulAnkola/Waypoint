@@ -341,6 +341,11 @@ export default function ProfileClient({
               </button>
             ))}
           </div>
+          {mapsPref === "waze" && (
+            <p className="mt-3 text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-3 py-2">
+              ⚠️ Waze only supports origin → destination. Intermediate stops will be ignored.
+            </p>
+          )}
           <div className="mt-3">
             <StatusRow status={mapsStatus} error={mapsError} />
           </div>

@@ -210,8 +210,8 @@ function PlannerTollTotal({
   return (
     <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border ${
       total > 0
-        ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400"
-        : "bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-400 dark:text-gray-500"
+        ? "bg-amber-100 dark:bg-amber-400/20 border-amber-300 dark:border-amber-500 text-amber-800 dark:text-amber-300"
+        : "bg-white/60 dark:bg-white/10 border-blue-200 dark:border-blue-600 text-blue-500 dark:text-blue-300"
     }`}>
       <Banknote className="w-3 h-3 shrink-0" />
       {total > 0 ? `~$${total.toFixed(2)} est.` : "No tolls"}
@@ -740,11 +740,6 @@ function PlannerInner() {
             <ExternalLink className="w-4 h-4" />
             Open in {mapsApp === "apple" ? "Apple Maps" : mapsApp === "waze" ? "Waze" : "Google Maps"}
           </button>
-          {mapsApp === "waze" && (
-            <p className="text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-3 py-2 text-center">
-              ⚠️ Waze only supports origin → destination. Intermediate stops are not supported.
-            </p>
-          )}
 
           {user ? (
             <div className="space-y-2">
