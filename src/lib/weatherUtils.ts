@@ -35,7 +35,7 @@ export function wmoToLabel(code: number): string {
 const CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
 
 function cacheKey(lat: number, lng: number, date: string): string {
-  return `wm_${lat.toFixed(2)}_${lng.toFixed(2)}_${date}`;
+  return `wm2_${lat.toFixed(2)}_${lng.toFixed(2)}_${date}`;
 }
 
 interface CacheEntry { data: WeatherData; ts: number }
@@ -95,7 +95,6 @@ export async function fetchWeather(
     url.searchParams.set("start_date", date);
     url.searchParams.set("end_date", date);
     url.searchParams.set("timezone", "auto");
-    url.searchParams.set("forecast_days", "1");
 
     const res = await fetch(url.toString());
     if (!res.ok) return null;

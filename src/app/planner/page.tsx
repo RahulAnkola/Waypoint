@@ -406,7 +406,7 @@ function PlannerInner() {
     // UPDATE: don't touch user_ids (members stay as-is)
     const { error } = tripId
       ? await supabase.from("trips").update(payload).eq("id", tripId)
-      : await supabase.from("trips").insert({ ...payload, user_ids: [user!.id], completed: false });
+      : await supabase.from("trips").insert({ ...payload, user_id: user!.id, user_ids: [user!.id], completed: false });
 
     setSaving(false);
     setSaveStatus(error ? "error" : "success");
@@ -432,6 +432,7 @@ function PlannerInner() {
 
     const supabase = createClient();
     const { error } = await supabase.from("trips").insert({
+      user_id: user!.id,
       user_ids: [user!.id],
       name,
       origin,
