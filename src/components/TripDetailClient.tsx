@@ -332,16 +332,17 @@ function SharePanel({ trip }: { trip: Trip }) {
 }
 
 /* ─── Trip-level toll total ─── */
-function TripTollTotal({ stops }: { stops: { lat: number; lng: number }[] }) {
+function TripTollTotal({ stops, legRoutes }: { stops: { lat: number; lng: number }[]; legRoutes: LegRoute[] }) {
   const [total, setTotal] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (stops.length < 2) { setLoading(false); return; }
     let cancelled = false;
-    const legs = stops.slice(0, -1).map((from, i) =>
-      fetchTollEstimate(from.lat, from.lng, stops[i + 1].lat, stops[i + 1].lng)
-    );
+    const legs = stops.slice(0, -1).map((from, i) => {
+      const dur = legRoutes.find(l => l.legIndex === i)?.durationSeconds ?? 0;
+      return fetchTollEstimate(from.lat, from.lng, stops[i + 1].lat, stops[i + 1].lng, dur);
+    });
     Promise.all(legs).then((results) => {
       if (cancelled) return;
       const sum = results.reduce((acc, r) => acc + (r?.amount ?? 0), 0);
@@ -350,7 +351,7 @@ function TripTollTotal({ stops }: { stops: { lat: number; lng: number }[] }) {
       setLoading(false);
     });
     return () => { cancelled = true; };
-  }, [stops]);
+  }, [stops, legRoutes]);
 
   if (loading) return <span className="inline-block h-7 w-24 bg-gray-100 dark:bg-gray-700 rounded-full animate-pulse" />;
   if (total === null) return null;
@@ -491,7 +492,7 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
                 {formatTime12(depTime)} → {formatTime12(stopTimes[stopTimes.length - 1])}
               </span>
             )}
-            <TripTollTotal stops={stops} />
+            <TripTollTotal stops={stops} legRoutes={legRoutes} />
           </div>
           <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-5">
             Toll estimates are approximate and may vary. Actual tolls depend on vehicle class and payment method.
@@ -584,6 +585,7 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
                                   <TollBadge
                                     originLat={stop.lat} originLng={stop.lng}
                                     destLat={stops[i + 1].lat} destLng={stops[i + 1].lng}
+                                    targetDurationSeconds={leg?.durationSeconds ?? 0}
                                     compact
                                   />
                                 </p>

@@ -10,22 +10,24 @@ interface Props {
   originLng: number;
   destLat: number;
   destLng: number;
+  /** Duration of the selected route in seconds — used to match the correct route alternative */
+  targetDurationSeconds?: number;
   /** When true renders a compact inline chip instead of a full badge row */
   compact?: boolean;
 }
 
-export default function TollBadge({ originLat, originLng, destLat, destLng, compact }: Props) {
+export default function TollBadge({ originLat, originLng, destLat, destLng, targetDurationSeconds = 0, compact }: Props) {
   const [toll, setToll] = useState<TollEstimate | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetchTollEstimate(originLat, originLng, destLat, destLng).then((data) => {
+    fetchTollEstimate(originLat, originLng, destLat, destLng, targetDurationSeconds).then((data) => {
       if (!cancelled) { setToll(data); setLoading(false); }
     });
     return () => { cancelled = true; };
-  }, [originLat, originLng, destLat, destLng]);
+  }, [originLat, originLng, destLat, destLng, targetDurationSeconds]);
 
   if (loading) {
     return <span className="inline-block h-4 w-14 bg-gray-100 dark:bg-gray-700 rounded-full animate-pulse align-middle" />;

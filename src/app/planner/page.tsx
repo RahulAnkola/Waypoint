@@ -599,6 +599,7 @@ function PlannerInner() {
                           <TollBadge
                             originLat={stops[leg.legIndex].lat} originLng={stops[leg.legIndex].lng}
                             destLat={stops[leg.legIndex + 1].lat} destLng={stops[leg.legIndex + 1].lng}
+                            targetDurationSeconds={selRoute?.durationSeconds ?? 0}
                             compact
                           />
                         )}
@@ -624,6 +625,7 @@ function PlannerInner() {
                             <TollBadge
                               originLat={stops[leg.legIndex].lat} originLng={stops[leg.legIndex].lng}
                               destLat={stops[leg.legIndex + 1].lat} destLng={stops[leg.legIndex + 1].lng}
+                              targetDurationSeconds={selRoute?.durationSeconds ?? 0}
                               compact
                             />
                           </div>
@@ -675,6 +677,7 @@ function PlannerInner() {
                           key={i}
                           originLat={from.lat} originLng={from.lng}
                           destLat={stops[i + 1].lat} destLng={stops[i + 1].lng}
+                          targetDurationSeconds={legInfos[i]?.routes[selectedRoutePerLeg[i] ?? 0]?.durationSeconds ?? 0}
                           compact
                         />
                       ))}
