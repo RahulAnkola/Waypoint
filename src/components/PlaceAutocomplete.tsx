@@ -112,7 +112,7 @@ export default function PlaceAutocomplete({
   return (
     <div className="w-full animate-slide-up">
       {label && (
-        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">
+        <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest mb-1.5">
           {label}
         </label>
       )}
@@ -126,12 +126,12 @@ export default function PlaceAutocomplete({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           className={`
-            w-full py-2.5 rounded-xl border text-sm text-gray-900 bg-white
+            w-full py-2.5 rounded-xl border text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700
             placeholder-gray-400 outline-none transition-all duration-200 shadow-sm
             ${showCurrentLocation ? "pl-4 pr-16" : hasValue ? "pl-4 pr-9" : "pl-4 pr-4"}
             ${isFocused
-              ? "border-blue-400 ring-2 ring-blue-100"
-              : "border-gray-200 hover:border-gray-300"
+              ? "border-blue-400 ring-2 ring-blue-100 dark:ring-blue-900"
+              : "border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500"
             }
           `}
         />

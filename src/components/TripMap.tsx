@@ -2,7 +2,8 @@
 
 import { GoogleMap, Marker } from "@react-google-maps/api";
 import { useCallback, useState, useEffect, useMemo, useRef } from "react";
-import type { PlaceResult, LegInfo, RouteOption } from "@/types";
+import type { PlaceResult, LegInfo, RouteOption, DistanceUnit } from "@/types";
+import { metersToDistance } from "@/lib/mapsUtils";
 import { Clock } from "lucide-react";
 
 interface LegResult {
@@ -16,6 +17,7 @@ interface Props {
   departureTime?: string;
   arrivalTime?: string;
   selectedRoutePerLeg: number[];
+  distanceUnit?: DistanceUnit;
   onLegRouteSelect: (legIndex: number, routeIndex: number) => void;
   onAllLegsLoaded?: (legInfos: LegInfo[]) => void;
 }
@@ -33,6 +35,7 @@ const mapOptions: google.maps.MapOptions = {
 const STOP_COLORS = ["#10b981", "#8b5cf6", "#f59e0b", "#06b6d4", "#f43f5e", "#ef4444"];
 const ALT_COLORS = ["#7c3aed", "#059669", "#d97706"];
 
+// Always stores distances as "X mi" internally; display conversion happens at render time.
 function parseRoutes(result: google.maps.DirectionsResult): RouteOption[] {
   return result.routes.map((route, index) => {
     let meters = 0, seconds = 0;
@@ -49,7 +52,7 @@ function stopLabel(i: number, total: number) {
   return String.fromCharCode(65 + i);
 }
 
-export default function TripMap({ stops, departureTime, arrivalTime, selectedRoutePerLeg, onLegRouteSelect, onAllLegsLoaded }: Props) {
+export default function TripMap({ stops, departureTime, arrivalTime, selectedRoutePerLeg, distanceUnit = "mi", onLegRouteSelect, onAllLegsLoaded }: Props) {
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [legResults, setLegResults] = useState<LegResult[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -180,12 +183,16 @@ export default function TripMap({ stops, departureTime, arrivalTime, selectedRou
       const r = leg.routes[selectedRoutePerLeg[leg.legIndex] ?? 0];
       if (r) {
         totalSeconds += r.durationSeconds;
-        totalMiles += parseFloat(r.distance);
+        totalMiles += parseFloat(r.distance); // stored as "X mi"
       }
     });
     const h = Math.floor(totalSeconds / 3600), m = Math.round((totalSeconds % 3600) / 60);
-    return { duration: h > 0 ? `${h}h ${m}m` : `${m}m`, distance: `${totalMiles.toFixed(0)} mi` };
-  }, [legResults, selectedRoutePerLeg]);
+    // Convert miles → preferred unit for display
+    const distStr = distanceUnit === "km"
+      ? `${(totalMiles * 1.60934).toFixed(0)} km`
+      : `${totalMiles.toFixed(0)} mi`;
+    return { duration: h > 0 ? `${h}h ${m}m` : `${m}m`, distance: distStr };
+  }, [legResults, selectedRoutePerLeg, distanceUnit]);
 
   return (
     <div className="relative w-full h-full">
@@ -213,24 +220,24 @@ export default function TripMap({ stops, departureTime, arrivalTime, selectedRou
 
       {/* Overlay — total summary */}
       {totals && (
-        <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-4 animate-scale-in min-w-[190px]">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+        <div className="absolute top-4 right-4 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 p-4 animate-scale-in min-w-[190px]">
+          <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">
             {stops.length - 1} leg{stops.length > 2 ? "s" : ""} · total
           </p>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold">Distance</p>
-              <p className="text-2xl font-extrabold text-gray-900 leading-tight">{totals.distance}</p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wide font-semibold">Distance</p>
+              <p className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">{totals.distance}</p>
             </div>
             <div>
-              <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold">Drive time</p>
-              <p className="text-2xl font-extrabold text-gray-900 leading-tight">{totals.duration}</p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wide font-semibold">Drive time</p>
+              <p className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">{totals.duration}</p>
             </div>
           </div>
           {arrivalTime && (
-            <div className="flex items-center gap-1.5 mt-3 py-2 px-3 bg-blue-50 rounded-xl">
+            <div className="flex items-center gap-1.5 mt-3 py-2 px-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
               <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-              <span className="text-sm font-semibold text-blue-700">Arrive ~{arrivalTime}</span>
+              <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">Arrive ~{arrivalTime}</span>
             </div>
           )}
         </div>

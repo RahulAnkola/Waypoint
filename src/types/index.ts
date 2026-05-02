@@ -31,9 +31,27 @@ export interface LegRoute {
   durationSeconds: number;
 }
 
+export type MapsPreference = "google" | "apple" | "waze" | "ask";
+export type DistanceUnit = "mi" | "km";
+
+export interface UserProfile {
+  id: string;
+  username: string | null;
+  maps_preference: MapsPreference;
+  distance_unit: DistanceUnit;
+  updated_at: string;
+}
+
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
 export interface Trip {
   id: string;
-  user_id: string;
+  /** Ordered list of user IDs. Index 0 = organiser, rest = members. */
+  user_ids: string[];
   name: string;
   origin: PlaceResult;
   destination: PlaceResult;
@@ -41,6 +59,9 @@ export interface Trip {
   completed: boolean;
   leg_routes: LegRoute[];
   departure_time: string | null;
+  notes: string | null;
+  checklist: ChecklistItem[] | null;
+  share_code: string | null;
   created_at: string;
   updated_at: string;
 }

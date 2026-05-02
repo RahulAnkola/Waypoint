@@ -14,6 +14,7 @@ import {
 import ScrollReveal from "@/components/ScrollReveal";
 import AnimatedHeading from "@/components/AnimatedHeading";
 import RoadTrail from "@/components/RoadTrail";
+import HomePageCarCursor from "@/components/HomePageCarCursor";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function Home() {
@@ -24,6 +25,7 @@ export default async function Home() {
   const isLoggedIn = !!user;
 
   return (
+    <HomePageCarCursor>
     <div className="overflow-x-hidden">
       {/* ───────── Hero ───────── */}
       <RoadTrail
@@ -76,7 +78,7 @@ export default async function Home() {
               <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
             </span>
-            <span className="text-white/90">Free · No credit card</span>
+            <span className="text-white/90">100% Free · No credit card</span>
           </div>
 
           {/* Floating logo */}
@@ -139,45 +141,60 @@ export default async function Home() {
         {/* Bottom fade into next section */}
         <div
           aria-hidden
-          className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none"
-          style={{
-            zIndex: 6,
-            background:
-              "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%)",
-          }}
+          className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none hero-bottom-fade"
+          style={{ zIndex: 6 }}
         />
       </RoadTrail>
 
       {/* ───────── Stats / trust strip ───────── */}
-      <section className="relative bg-white border-b border-gray-100">
+      <section className="relative bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
         <div className="max-w-5xl mx-auto px-4 py-8">
           <ScrollReveal variant="up">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 text-center">
               <Stat label="ads" value="Zero" />
               <Stat label="Stops per trip" value="Unlimited" />
               <Stat label="Setup time" value="< 60s" />
-              <Stat label="Cost" value="Free" />
+              <Stat label="Cost" value="100% Free" />
             </div>
           </ScrollReveal>
         </div>
       </section>
 
-      {/* ───────── Features ───────── */}
-      <section className="relative py-24 px-4 bg-gradient-to-b from-white to-gray-50 mesh-bg">
-        <div className="relative max-w-6xl mx-auto">
+      {/* ───────── Features · How it works · CTA — one seamless dark band ───────── */}
+      <section
+        className="relative overflow-hidden text-white"
+        style={{
+          isolation: "isolate",
+          backgroundColor: "#0f172a",
+          backgroundImage:
+            "linear-gradient(180deg, #0f172a 0%, #0d1424 40%, #111827 70%, #0f172a 100%)",
+        }}
+      >
+        {/* Single dot-grid across the whole band */}
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-[0.07] dot-grid-bg text-white pointer-events-none"
+        />
+
+        {/* Ambient blobs staggered vertically — one glow per "zone" */}
+        <div aria-hidden className="absolute top-[5%]  right-[10%] w-[32rem] h-[32rem] rounded-full bg-violet-600 blur-3xl opacity-[0.12] pointer-events-none animate-blob" />
+        <div aria-hidden className="absolute top-[30%] left-[5%]  w-[28rem] h-[28rem] rounded-full bg-cyan-600   blur-3xl opacity-[0.10] pointer-events-none animate-blob-2" />
+        <div aria-hidden className="absolute top-[58%] left-1/2  -translate-x-1/2 w-[40rem] h-[40rem] rounded-full bg-blue-600 blur-3xl opacity-[0.14] pointer-events-none" />
+        <div aria-hidden className="absolute top-[82%] right-[8%] w-[26rem] h-[26rem] rounded-full bg-indigo-500 blur-3xl opacity-[0.12] pointer-events-none animate-blob-3" />
+
+        {/* ── Features ── */}
+        <div className="relative max-w-6xl mx-auto px-4 pt-24 pb-20">
           <ScrollReveal variant="up">
             <div className="text-center mb-14">
-              <span className="inline-block text-[11px] font-bold uppercase tracking-[0.25em] text-blue-600 mb-3">
+              <span className="inline-block text-[11px] font-bold uppercase tracking-[0.25em] text-blue-400 mb-3">
                 Features
               </span>
-              <h2 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight">
+              <h2 className="text-4xl sm:text-5xl font-black tracking-tight">
                 Everything you need
                 <br />
-                <span className="text-gradient-animated">
-                  for the perfect trip
-                </span>
+                <span className="text-gradient-animated">for the perfect trip</span>
               </h2>
-              <p className="text-gray-500 max-w-xl mx-auto mt-5">
+              <p className="text-white/60 max-w-xl mx-auto mt-5">
                 Designed to feel as smooth as the road ahead — no clutter, no
                 friction, just the stuff that helps you actually leave.
               </p>
@@ -192,28 +209,14 @@ export default async function Home() {
             ))}
           </div>
         </div>
-      </section>
 
-      {/* ───────── How it works ───────── */}
-      <section
-        className="relative overflow-hidden py-24 px-4 text-white"
-        style={{
-          isolation: "isolate",
-          backgroundColor: "#0f172a",
-          backgroundImage:
-            "linear-gradient(180deg, #0f172a 0%, #111827 50%, #0f172a 100%)",
-        }}
-      >
-        <div
-          aria-hidden
-          className="absolute inset-0 opacity-[0.07] dot-grid-bg text-white pointer-events-none"
-        />
-        <div
-          aria-hidden
-          className="absolute -top-32 left-1/2 -translate-x-1/2 w-[40rem] h-[40rem] rounded-full bg-blue-600 blur-3xl opacity-20"
-        />
+        {/* Thin divider */}
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="border-t border-white/[0.07]" />
+        </div>
 
-        <div className="relative max-w-5xl mx-auto">
+        {/* ── How it works ── */}
+        <div className="relative max-w-5xl mx-auto px-4 py-20">
           <ScrollReveal variant="up">
             <div className="text-center mb-16">
               <span className="inline-block text-[11px] font-bold uppercase tracking-[0.25em] text-blue-400 mb-3">
@@ -227,7 +230,6 @@ export default async function Home() {
           </ScrollReveal>
 
           <div className="grid md:grid-cols-3 gap-6 relative">
-            {/* Decorative dotted connector */}
             <div
               aria-hidden
               className="hidden md:block absolute top-12 left-[16%] right-[16%] h-px border-t-2 border-dashed border-white/10"
@@ -239,72 +241,72 @@ export default async function Home() {
             ))}
           </div>
         </div>
-      </section>
 
-      {/* ───────── CTA ───────── */}
-      <section className="relative py-24 px-4 bg-white">
-        <ScrollReveal variant="zoom">
-          <div
-            className="relative max-w-4xl mx-auto overflow-hidden rounded-[2rem] p-12 sm:p-16 text-white text-center shadow-2xl shadow-blue-200"
-            style={{
-              isolation: "isolate",
-              backgroundColor: "#2563eb",
-              backgroundImage:
-                "linear-gradient(135deg, #2563eb 0%, #4338ca 50%, #6d28d9 100%)",
-            }}
-          >
-            <div
-              aria-hidden
-              className="absolute inset-0 opacity-[0.12] dot-grid-bg text-white pointer-events-none"
-            />
-            <div
-              aria-hidden
-              className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-pink-400 blur-3xl opacity-40 animate-blob-2"
-            />
-            <div
-              aria-hidden
-              className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-cyan-400 blur-3xl opacity-40 animate-blob"
-            />
+        {/* Thin divider */}
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="border-t border-white/[0.07]" />
+        </div>
 
-            <div className="relative">
-              <h2 className="text-3xl sm:text-5xl font-black mb-4 tracking-tight">
-                Ready to hit the road?
-              </h2>
-              <p className="text-blue-100 text-lg max-w-md mx-auto mb-8">
-                No account needed to start planning. Sign up to save your trips
-                across devices.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Link
-                  href="/planner"
-                  className="btn-shine btn-tap group inline-flex items-center justify-center gap-2 bg-white text-blue-700 px-8 py-4 rounded-2xl font-bold text-lg hover:-translate-y-0.5 transition-all shadow-xl"
-                >
-                  <Compass className="w-5 h-5 transition-transform duration-500 group-hover:rotate-90" />
-                  Open the Planner
-                  <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-                </Link>
-                {isLoggedIn ? (
+        {/* ── CTA ── */}
+        <div className="relative px-4 py-24">
+          <ScrollReveal variant="zoom">
+            <div
+              className="relative max-w-4xl mx-auto overflow-hidden rounded-[2rem] p-12 sm:p-16 text-white text-center shadow-2xl shadow-blue-950/60"
+              style={{
+                isolation: "isolate",
+                backgroundColor: "#2563eb",
+                backgroundImage:
+                  "linear-gradient(135deg, #2563eb 0%, #4338ca 50%, #6d28d9 100%)",
+              }}
+            >
+              <div
+                aria-hidden
+                className="absolute inset-0 opacity-[0.12] dot-grid-bg text-white pointer-events-none"
+              />
+              <div aria-hidden className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-pink-400 blur-3xl opacity-40 animate-blob-2" />
+              <div aria-hidden className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-cyan-400 blur-3xl opacity-40 animate-blob" />
+
+              <div className="relative">
+                <h2 className="text-3xl sm:text-5xl font-black mb-4 tracking-tight">
+                  Ready to hit the road?
+                </h2>
+                <p className="text-blue-100 text-lg max-w-md mx-auto mb-8">
+                  No account needed to start planning. Sign up to save your trips
+                  across devices.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Link
-                    href="/trips"
-                    className="btn-tap inline-flex items-center justify-center gap-2 border-2 border-white/40 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white/10 transition-all"
+                    href="/planner"
+                    className="btn-shine btn-tap group inline-flex items-center justify-center gap-2 bg-white text-blue-700 px-8 py-4 rounded-2xl font-bold text-lg hover:-translate-y-0.5 transition-all shadow-xl"
                   >
-                    <BookMarked className="w-5 h-5" />
-                    My Trips
+                    <Compass className="w-5 h-5 transition-transform duration-500 group-hover:rotate-90" />
+                    Open the Planner
+                    <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                   </Link>
-                ) : (
-                  <Link
-                    href="/auth/signup"
-                    className="btn-tap inline-flex items-center justify-center gap-2 border-2 border-white/40 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white/10 transition-all"
-                  >
-                    Create account
-                  </Link>
-                )}
+                  {isLoggedIn ? (
+                    <Link
+                      href="/trips"
+                      className="btn-tap inline-flex items-center justify-center gap-2 border-2 border-white/40 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white/10 transition-all"
+                    >
+                      <BookMarked className="w-5 h-5" />
+                      My Trips
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/auth/signup"
+                      className="btn-tap inline-flex items-center justify-center gap-2 border-2 border-white/40 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white/10 transition-all"
+                    >
+                      Create account
+                    </Link>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        </ScrollReveal>
+          </ScrollReveal>
+        </div>
       </section>
     </div>
+    </HomePageCarCursor>
   );
 }
 
@@ -358,10 +360,10 @@ const STEPS = [
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="px-3 py-2">
-      <p className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+      <p className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
         {value}
       </p>
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 mt-1">
+      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 mt-1">
         {label}
       </p>
     </div>
@@ -380,23 +382,23 @@ function FeatureCard({
   gradient: string;
 }) {
   return (
-    <div className="group lift relative h-full overflow-hidden rounded-2xl border border-gray-200 bg-white p-7 hover:border-transparent hover:shadow-xl hover:shadow-blue-100/50 transition-all">
-      {/* Hover gradient border */}
+    <div className="group lift relative h-full overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-7 hover:bg-white/10 hover:border-white/20 transition-all">
+      {/* Hover gradient wash */}
       <div
         aria-hidden
-        className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-[0.06] transition-opacity duration-500`}
+        className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}
       />
 
       <div
-        className={`relative inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-lg shadow-gray-200 mb-5 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110`}
+        className={`relative inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-lg shadow-black/30 mb-5 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110`}
       >
         <Icon className="w-7 h-7" />
       </div>
 
-      <h3 className="text-lg font-bold text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-500 text-sm leading-relaxed">{description}</p>
+      <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
+      <p className="text-white/60 text-sm leading-relaxed">{description}</p>
 
-      <div className="mt-5 flex items-center gap-1.5 text-xs font-semibold text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="mt-5 flex items-center gap-1.5 text-xs font-semibold text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
         Learn more
         <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
       </div>

@@ -5,12 +5,15 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
-import { MapPin, LogOut, Map, BookMarked, Menu, X, Info } from "lucide-react";
+import { MapPin, LogOut, Map, BookMarked, Menu, X, Info, UserCircle2, Sun, Moon } from "lucide-react";
+import { applyTheme, getStoredTheme } from "@/components/ThemeProvider";
 
 export default function Navbar() {
   const [user, setUser] = useState<User | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isDark, setIsDark] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
   const supabase = createClient();
@@ -24,11 +27,31 @@ export default function Navbar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Fetch username whenever user changes
+  useEffect(() => {
+    if (!user) { setUsername(null); return; }
+    supabase
+      .from("profiles")
+      .select("username")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => setUsername(data?.username ?? null));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Hydrate dark state on mount
+  useEffect(() => {
+    const stored = getStoredTheme();
+    const preferred = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    const theme = stored ?? preferred;
+    setIsDark(theme === "dark");
   }, []);
 
   // Close mobile menu when route changes.
@@ -42,6 +65,13 @@ export default function Navbar() {
     router.refresh();
   };
 
+  const toggleTheme = () => {
+    const next = isDark ? "light" : "dark";
+    setIsDark(!isDark);
+    applyTheme(next);
+    try { localStorage.setItem("waypoint-theme", next); } catch { /* ignore */ }
+  };
+
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname?.startsWith(href);
 
@@ -49,8 +79,8 @@ export default function Navbar() {
     <nav
       className={`sticky top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-white/75 backdrop-blur-xl border-b border-gray-200/70 shadow-[0_4px_24px_-12px_rgba(0,0,0,0.12)]"
-          : "bg-white border-b border-gray-200 shadow-sm"
+          ? "bg-white/75 dark:bg-gray-900/75 backdrop-blur-xl border-b border-gray-200/70 dark:border-gray-700/70 shadow-[0_4px_24px_-12px_rgba(0,0,0,0.12)]"
+          : "bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -85,10 +115,15 @@ export default function Navbar() {
             </NavLink>
 
             {user ? (
-              <div className="flex items-center gap-3 pl-3 border-l border-gray-200">
-                <span className="text-sm text-gray-500 max-w-[160px] truncate">
-                  {user.email}
-                </span>
+              <div className="flex items-center gap-2 pl-3 border-l border-gray-200 dark:border-gray-700">
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-blue-600 transition-colors max-w-[140px] truncate"
+                  title="Edit profile"
+                >
+                  <UserCircle2 className="w-4 h-4 shrink-0" />
+                  <span className="truncate">{username || user.email}</span>
+                </Link>
                 <button
                   onClick={handleSignOut}
                   className="btn-tap flex items-center gap-1.5 text-sm text-red-500 hover:text-red-600 transition-colors font-medium"
@@ -100,7 +135,7 @@ export default function Navbar() {
               <div className="flex items-center gap-3">
                 <Link
                   href="/auth/login"
-                  className="link-underline text-gray-600 hover:text-blue-600 transition-colors font-medium"
+                  className="link-underline text-gray-600 dark:text-gray-300 hover:text-blue-600 transition-colors font-medium"
                 >
                   Log in
                 </Link>
@@ -112,27 +147,45 @@ export default function Navbar() {
                 </Link>
               </div>
             )}
+
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              className="btn-tap p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
           </div>
 
-          {/* Mobile hamburger */}
-          <button
-            className="md:hidden btn-tap p-2 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-          >
-            <span className="relative inline-block w-5 h-5">
-              <Menu
-                className={`absolute inset-0 w-5 h-5 transition-all duration-200 ${
-                  menuOpen ? "opacity-0 rotate-90 scale-75" : "opacity-100 rotate-0 scale-100"
-                }`}
-              />
-              <X
-                className={`absolute inset-0 w-5 h-5 transition-all duration-200 ${
-                  menuOpen ? "opacity-100 rotate-0 scale-100" : "opacity-0 -rotate-90 scale-75"
-                }`}
-              />
-            </span>
-          </button>
+          {/* Mobile right side: theme toggle + hamburger */}
+          <div className="md:hidden flex items-center gap-1">
+            <button
+              onClick={toggleTheme}
+              aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              className="btn-tap p-2 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            >
+              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+            <button
+              className="btn-tap p-2 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+            >
+              <span className="relative inline-block w-5 h-5">
+                <Menu
+                  className={`absolute inset-0 w-5 h-5 transition-all duration-200 ${
+                    menuOpen ? "opacity-0 rotate-90 scale-75" : "opacity-100 rotate-0 scale-100"
+                  }`}
+                />
+                <X
+                  className={`absolute inset-0 w-5 h-5 transition-all duration-200 ${
+                    menuOpen ? "opacity-100 rotate-0 scale-100" : "opacity-0 -rotate-90 scale-75"
+                  }`}
+                />
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -142,7 +195,7 @@ export default function Navbar() {
           menuOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <div className="border-t border-gray-100 bg-white px-4 py-4 space-y-1">
+        <div className="border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-4 space-y-1">
           <MobileLink href="/planner" active={isActive("/planner")} onClick={() => setMenuOpen(false)}>
             <Map className="w-4 h-4" /> Planner
           </MobileLink>
@@ -155,13 +208,19 @@ export default function Navbar() {
             <Info className="w-4 h-4" /> About
           </MobileLink>
 
+          {user && (
+            <MobileLink href="/profile" active={isActive("/profile")} onClick={() => setMenuOpen(false)}>
+              <UserCircle2 className="w-4 h-4" />
+              {username || user.email}
+            </MobileLink>
+          )}
           {user ? (
             <button
               onClick={() => {
                 handleSignOut();
                 setMenuOpen(false);
               }}
-              className="btn-tap w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-500 font-medium hover:bg-red-50 transition-colors"
+              className="btn-tap w-full flex items-center gap-2 px-3 py-2 rounded-lg text-red-500 font-medium hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             >
               <LogOut className="w-4 h-4" /> Sign out
             </button>
@@ -169,7 +228,7 @@ export default function Navbar() {
             <div className="flex flex-col gap-2 pt-2">
               <Link
                 href="/auth/login"
-                className="btn-tap text-gray-700 font-medium px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                className="btn-tap text-gray-700 dark:text-gray-300 font-medium px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 onClick={() => setMenuOpen(false)}
               >
                 Log in
@@ -203,7 +262,7 @@ function NavLink({
       href={href}
       data-active={active ? "true" : "false"}
       className={`link-underline flex items-center gap-1.5 transition-colors font-medium ${
-        active ? "text-blue-600" : "text-gray-600 hover:text-blue-600"
+        active ? "text-blue-600" : "text-gray-600 dark:text-gray-300 hover:text-blue-600"
       }`}
     >
       {children}
@@ -228,8 +287,8 @@ function MobileLink({
       onClick={onClick}
       className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-colors ${
         active
-          ? "bg-blue-50 text-blue-700"
-          : "text-gray-700 hover:bg-gray-50"
+          ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
+          : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
       }`}
     >
       {children}

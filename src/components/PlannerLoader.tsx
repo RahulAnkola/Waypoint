@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Trip, PlaceResult } from "@/types";
+import type { Trip, PlaceResult, LegRoute } from "@/types";
 
 interface Props {
   tripId: string;
@@ -12,6 +12,7 @@ interface Props {
     destination: PlaceResult;
     waypoints: PlaceResult[];
     departure_time: string | null;
+    leg_routes: LegRoute[];
   }) => void;
 }
 
@@ -32,6 +33,7 @@ export default function PlannerLoader({ tripId, onLoaded }: Props) {
             destination: trip.destination,
             waypoints: trip.waypoints,
             departure_time: trip.departure_time,
+            leg_routes: trip.leg_routes ?? [],
           });
         }
       });

@@ -8,13 +8,32 @@ import PlaceAutocomplete from "@/components/PlaceAutocomplete";
 import PlannerLoader from "@/components/PlannerLoader";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
-import type { PlaceResult, LegInfo, LegRoute } from "@/types";
+import type { PlaceResult, LegInfo, LegRoute, DistanceUnit } from "@/types";
+import { getDistanceUnitLocal, formatStoredDistance } from "@/lib/mapsUtils";
 import {
   Plus, Trash2, ExternalLink, Save, Loader2,
   AlertCircle, CheckCircle2, Clock, Navigation,
   ChevronUp, ChevronDown, Route, Copy, Pencil,
   GripVertical,
 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
+  defaultDropAnimationSideEffects,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 /* Resizable sidebar bounds. */
 const SIDEBAR_DEFAULT_WIDTH = 340;
@@ -77,6 +96,88 @@ function truncateAddr(addr: string, max = 22): string {
   return city.length <= max ? city : city.slice(0, max - 1) + "…";
 }
 
+/* ─── Sortable waypoint row ─── */
+interface WaypointItem { id: string; place: PlaceResult | null; }
+
+function WaypointRow({
+  item, idx, onChange, onRemove, isDragging = false, overlay = false,
+}: {
+  item: WaypointItem;
+  idx: number;
+  onChange: (id: string, place: PlaceResult | null) => void;
+  onRemove: (id: string) => void;
+  isDragging?: boolean;
+  overlay?: boolean;
+}) {
+  return (
+    <div
+      className={`relative pl-7 transition-all duration-200 ${
+        isDragging && !overlay ? "opacity-30 scale-[0.98]" : ""
+      } ${overlay ? "drop-shadow-2xl" : ""}`}
+    >
+      <div className="absolute left-0 top-7 flex flex-col items-center">
+        <div className={`w-3 h-3 rounded-full border-2 border-white shadow-md z-10 transition-colors ${overlay ? "bg-blue-500" : "bg-violet-400"}`} />
+        {!overlay && (
+          <div className="w-px bg-gradient-to-b from-violet-300 to-blue-300 mt-1" style={{ height: 36 }} />
+        )}
+      </div>
+      <div className={`flex gap-2 items-end ${overlay ? "bg-white rounded-xl border border-blue-200 px-2 py-1 shadow-xl ring-2 ring-blue-100" : ""}`}>
+        <div
+          className={`mb-1 p-1.5 rounded-lg transition-all shrink-0 touch-none ${
+            overlay ? "text-blue-500 cursor-grabbing" : "text-gray-300 hover:text-gray-500 hover:bg-gray-100 cursor-grab"
+          }`}
+        >
+          <GripVertical className="w-4 h-4" />
+        </div>
+        <div className="flex-1">
+          <PlaceAutocomplete
+            label={`Stop ${idx + 1}`}
+            placeholder="Add a stop"
+            value={item.place}
+            onChange={(p) => onChange(item.id, p)}
+          />
+        </div>
+        <button
+          type="button"
+          onClick={() => onRemove(item.id)}
+          className="mb-0.5 p-2 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-all shrink-0"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SortableWaypoint({
+  item, idx, onChange, onRemove,
+}: {
+  item: WaypointItem;
+  idx: number;
+  onChange: (id: string, place: PlaceResult | null) => void;
+  onRemove: (id: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: item.id });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition: transition ?? "transform 200ms cubic-bezier(0.25,1,0.5,1)",
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <WaypointRow
+        item={item}
+        idx={idx}
+        onChange={onChange}
+        onRemove={onRemove}
+        isDragging={isDragging}
+      />
+    </div>
+  );
+}
+
 function PlannerInner() {
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
@@ -88,7 +189,9 @@ function PlannerInner() {
 
   const [origin, setOrigin] = useState<PlaceResult | null>(null);
   const [destination, setDestination] = useState<PlaceResult | null>(null);
-  const [waypoints, setWaypoints] = useState<(PlaceResult | null)[]>([]);
+  const [waypoints, setWaypoints] = useState<WaypointItem[]>([]);
+  const wpIdCounter = useRef(0);
+  const newWpId = () => `wp-${++wpIdCounter.current}`;
   const [tripName, setTripName] = useState("");
   const [departureTime, setDepartureTime] = useState(() => {
     const now = new Date();
@@ -98,6 +201,8 @@ function PlannerInner() {
   });
   const [legInfos, setLegInfos] = useState<LegInfo[]>([]);
   const [selectedRoutePerLeg, setSelectedRoutePerLeg] = useState<number[]>([]);
+  const [savedLegRoutes, setSavedLegRoutes] = useState<LegRoute[]>([]);
+  const [distanceUnit, setDistanceUnit] = useState<DistanceUnit>("mi");
   const [user, setUser] = useState<User | null>(null);
   const [saving, setSaving] = useState(false);
   const [savingNew, setSavingNew] = useState(false);
@@ -118,6 +223,7 @@ function PlannerInner() {
         if (!Number.isNaN(n)) setSidebarWidth(clampSidebarWidth(n));
       }
     } catch { /* ignore */ }
+    setDistanceUnit(getDistanceUnitLocal());
   }, []);
 
   // Persist whenever the user finishes adjusting.
@@ -157,13 +263,15 @@ function PlannerInner() {
   }, [isResizing]);
 
   const handleTripLoaded = useCallback(
-    (data: { name: string; origin: PlaceResult; destination: PlaceResult; waypoints: PlaceResult[]; departure_time: string | null }) => {
+    (data: { name: string; origin: PlaceResult; destination: PlaceResult; waypoints: PlaceResult[]; departure_time: string | null; leg_routes: LegRoute[] }) => {
       setTripName(data.name);
       setOrigin(data.origin);
       setDestination(data.destination);
-      setWaypoints(data.waypoints);
+      setWaypoints(data.waypoints.map((p) => ({ id: newWpId(), place: p })));
       if (data.departure_time) setDepartureTime(data.departure_time);
+      setSavedLegRoutes(data.leg_routes);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
@@ -178,7 +286,7 @@ function PlannerInner() {
   const stops = useMemo<PlaceResult[]>(() => {
     const arr: PlaceResult[] = [];
     if (origin) arr.push(origin);
-    waypoints.forEach((w) => { if (w) arr.push(w); });
+    waypoints.forEach((w) => { if (w.place) arr.push(w.place); });
     if (destination) arr.push(destination);
     return arr;
   }, [origin, waypoints, destination]);
@@ -191,8 +299,13 @@ function PlannerInner() {
 
   const handleAllLegsLoaded = useCallback((infos: LegInfo[]) => {
     setLegInfos(infos);
-    setSelectedRoutePerLeg(infos.map(() => 0));
-  }, []);
+    setSelectedRoutePerLeg(infos.map((leg) => {
+      const saved = savedLegRoutes.find((r) => r.legIndex === leg.legIndex);
+      // Clamp to valid range in case routes available have changed
+      const maxIdx = Math.max(0, leg.routes.length - 1);
+      return Math.min(saved?.routeIndex ?? 0, maxIdx);
+    }));
+  }, [savedLegRoutes]);
 
   const handleLegRouteSelect = useCallback((legIndex: number, routeIndex: number) => {
     setSelectedRoutePerLeg((prev) => {
@@ -214,10 +327,27 @@ function PlannerInner() {
     ? computeArrival(departureTime, totalSeconds)
     : undefined;
 
-  const addWaypoint = () => setWaypoints((p) => [...p, null]);
-  const removeWaypoint = (i: number) => setWaypoints((p) => p.filter((_, j) => j !== i));
-  const updateWaypoint = (i: number, place: PlaceResult | null) =>
-    setWaypoints((p) => p.map((w, j) => (j === i ? place : w)));
+  const [activeWpId, setActiveWpId] = useState<string | null>(null);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const addWaypoint = () => setWaypoints((p) => [...p, { id: newWpId(), place: null }]);
+  const removeWaypoint = (id: string) => setWaypoints((p) => p.filter((w) => w.id !== id));
+  const updateWaypoint = (id: string, place: PlaceResult | null) =>
+    setWaypoints((p) => p.map((w) => (w.id === id ? { ...w, place } : w)));
+  const handleDragStart = (event: DragStartEvent) => setActiveWpId(String(event.active.id));
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveWpId(null);
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setWaypoints((prev) => {
+        const oldIndex = prev.findIndex((w) => w.id === active.id);
+        const newIndex = prev.findIndex((w) => w.id === over.id);
+        return arrayMove(prev, oldIndex, newIndex);
+      });
+    }
+  };
+  const activeWp = waypoints.find((w) => w.id === activeWpId) ?? null;
+  const activeWpIdx = waypoints.findIndex((w) => w.id === activeWpId);
 
   const stepTime = (delta: number) => setDepartureTime((t) => adjustTimeBy(t, delta));
 
@@ -238,15 +368,16 @@ function PlannerInner() {
       };
     });
 
+  // RLS already scopes trips to the current user — just check name uniqueness
   const checkDuplicateName = async (name: string, excludeId?: string): Promise<boolean> => {
     const supabase = createClient();
-    let q = supabase.from("trips").select("id").eq("user_id", user!.id).eq("name", name);
+    let q = supabase.from("trips").select("id").eq("name", name);
     if (excludeId) q = q.neq("id", excludeId);
     const { data } = await q;
     return (data?.length ?? 0) > 0;
   };
 
-  // Save changes to the existing trip (or insert if new)
+  // Save changes to existing trip (or insert if new)
   const handleSave = async () => {
     if (!canSave || !origin || !destination) return;
     setSaving(true);
@@ -267,14 +398,15 @@ function PlannerInner() {
       name,
       origin,
       destination,
-      waypoints: stops.slice(1, -1),
+      waypoints: waypoints.filter((w) => w.place).map((w) => w.place!),
       leg_routes: buildLegRoutes(),
       departure_time: departureTime || null,
     };
 
+    // UPDATE: don't touch user_ids (members stay as-is)
     const { error } = tripId
-      ? await supabase.from("trips").update(payload).eq("id", tripId).eq("user_id", user!.id)
-      : await supabase.from("trips").insert({ ...payload, user_id: user!.id, completed: false });
+      ? await supabase.from("trips").update(payload).eq("id", tripId)
+      : await supabase.from("trips").insert({ ...payload, user_ids: [user!.id], completed: false });
 
     setSaving(false);
     setSaveStatus(error ? "error" : "success");
@@ -282,7 +414,7 @@ function PlannerInner() {
     if (!error) setTimeout(() => setSaveStatus("idle"), 3000);
   };
 
-  // Always inserts a brand-new trip (available when editing an existing one)
+  // Always inserts a brand-new trip
   const handleSaveAsNew = async () => {
     if (!canSave || !origin || !destination) return;
     setSavingNew(true);
@@ -300,11 +432,11 @@ function PlannerInner() {
 
     const supabase = createClient();
     const { error } = await supabase.from("trips").insert({
-      user_id: user!.id,
+      user_ids: [user!.id],
       name,
       origin,
       destination,
-      waypoints: stops.slice(1, -1),
+      waypoints: waypoints.filter((w) => w.place).map((w) => w.place!),
       completed: false,
       leg_routes: buildLegRoutes(),
       departure_time: departureTime || null,
@@ -344,13 +476,13 @@ function PlannerInner() {
       {/* ── Sidebar (resizable) ── */}
       <aside
         style={{ width: sidebarWidth }}
-        className="bg-white border-r border-gray-100 flex flex-col overflow-y-auto shrink-0 shadow-sm">
-        <div className="px-5 pt-5 pb-4 border-b border-gray-100 animate-fade-in">
-          <h1 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+        className="bg-white dark:bg-gray-800 border-r border-gray-100 dark:border-gray-700 flex flex-col overflow-y-auto shrink-0 shadow-sm">
+        <div className="px-5 pt-5 pb-4 border-b border-gray-100 dark:border-gray-700 animate-fade-in">
+          <h1 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Navigation className="w-5 h-5 text-blue-600" />
             Plan your route
           </h1>
-          <p className="text-xs text-gray-400 mt-0.5 ml-7">Enter your stops, pick routes, and go</p>
+          <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5 ml-7">Enter your stops, pick routes, and go</p>
         </div>
 
         <div className="p-5 space-y-3 flex-1">
@@ -365,23 +497,40 @@ function PlannerInner() {
             <PlaceAutocomplete label="From" placeholder="Starting point" value={origin} onChange={setOrigin} showCurrentLocation />
           </div>
 
-          {/* Waypoints */}
-          {waypoints.map((wp, idx) => (
-            <div key={idx} className="relative pl-7 animate-slide-up">
-              <div className="absolute left-0 top-7 flex flex-col items-center">
-                <div className="w-3 h-3 rounded-full bg-violet-400 border-2 border-white shadow-md z-10" />
-                <div className="w-px bg-gradient-to-b from-violet-300 to-blue-300 mt-1" style={{ height: 36 }} />
-              </div>
-              <div className="flex gap-2 items-end">
-                <div className="flex-1">
-                  <PlaceAutocomplete label={`Stop ${idx + 1}`} placeholder="Add a stop" value={wp} onChange={(p) => updateWaypoint(idx, p)} />
-                </div>
-                <button type="button" onClick={() => removeWaypoint(idx)} className="mb-0.5 p-2 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-all shrink-0">
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          ))}
+          {/* Waypoints — drag to reorder */}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext items={waypoints.map((w) => w.id)} strategy={verticalListSortingStrategy}>
+              {waypoints.map((wp, idx) => (
+                <SortableWaypoint
+                  key={wp.id}
+                  item={wp}
+                  idx={idx}
+                  onChange={updateWaypoint}
+                  onRemove={removeWaypoint}
+                />
+              ))}
+            </SortableContext>
+            <DragOverlay
+              dropAnimation={{
+                sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: "0.4" } } }),
+              }}
+            >
+              {activeWp ? (
+                <WaypointRow
+                  item={activeWp}
+                  idx={activeWpIdx}
+                  onChange={() => {}}
+                  onRemove={() => {}}
+                  overlay
+                />
+              ) : null}
+            </DragOverlay>
+          </DndContext>
 
           {/* To */}
           <div className="relative pl-7">
@@ -400,22 +549,22 @@ function PlannerInner() {
           {/* Departure time */}
           {stops.length > 0 && (
             <div className="ml-7 animate-slide-up delay-150">
-              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Departure time</label>
+              <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest mb-1.5">Departure time</label>
               <div className="flex items-center gap-2">
                 <div className="flex flex-col shrink-0">
-                  <button type="button" onClick={() => stepTime(15)} className="p-1 rounded-t-lg border border-gray-200 border-b-0 bg-white hover:bg-blue-50 hover:text-blue-600 text-gray-400 transition-colors" title="+15 min">
+                  <button type="button" onClick={() => stepTime(15)} className="p-1 rounded-t-lg border border-gray-200 dark:border-gray-600 border-b-0 bg-white dark:bg-gray-700 hover:bg-blue-50 hover:text-blue-600 text-gray-400 transition-colors" title="+15 min">
                     <ChevronUp className="w-3.5 h-3.5" />
                   </button>
-                  <button type="button" onClick={() => stepTime(-15)} className="p-1 rounded-b-lg border border-gray-200 border-t-0 bg-white hover:bg-blue-50 hover:text-blue-600 text-gray-400 transition-colors" title="-15 min">
+                  <button type="button" onClick={() => stepTime(-15)} className="p-1 rounded-b-lg border border-gray-200 dark:border-gray-600 border-t-0 bg-white dark:bg-gray-700 hover:bg-blue-50 hover:text-blue-600 text-gray-400 transition-colors" title="-15 min">
                     <ChevronDown className="w-3.5 h-3.5" />
                   </button>
                 </div>
                 <div className="relative flex-1">
                   <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
-                  <input type="time" value={departureTime} onChange={(e) => setDepartureTime(e.target.value)} className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-200 hover:border-gray-300 text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 shadow-sm transition-all" />
+                  <input type="time" value={departureTime} onChange={(e) => setDepartureTime(e.target.value)} className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 hover:border-gray-300 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 shadow-sm transition-all" />
                 </div>
               </div>
-              {departureTime && <p className="text-xs text-gray-400 mt-1.5 ml-10">Leaving at {formatTime12(departureTime)}</p>}
+              {departureTime && <p className="text-xs text-gray-400 dark:text-gray-400 mt-1.5 ml-10">Leaving at {formatTime12(departureTime)}</p>}
             </div>
           )}
 
@@ -431,18 +580,18 @@ function PlannerInner() {
                 const selIdx = selectedRoutePerLeg[leg.legIndex] ?? 0;
                 const selRoute = leg.routes[selIdx];
                 return (
-                  <div key={leg.legIndex} className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                  <div key={leg.legIndex} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-3 border border-gray-100 dark:border-gray-600">
                     <div className="flex items-center gap-1.5 mb-2">
                       <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
                         {leg.legIndex + 1}
                       </span>
-                      <p className="text-xs font-semibold text-gray-600 truncate">
+                      <p className="text-xs font-semibold text-gray-600 dark:text-gray-300 truncate">
                         {truncateAddr(leg.from)} → {truncateAddr(leg.to)}
                       </p>
                     </div>
 
                     {leg.routes.length === 1 ? (
-                      <p className="text-xs text-gray-500 px-1">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 px-1">
                         via {selRoute?.summary} · {selRoute?.duration} · {selRoute?.distance}
                       </p>
                     ) : (
@@ -454,7 +603,7 @@ function PlannerInner() {
                             className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-[0.97] ${
                               r.index === selIdx
                                 ? "bg-blue-600 text-white shadow-sm"
-                                : "bg-white text-gray-600 hover:bg-gray-100 border border-gray-200"
+                                : "bg-white dark:bg-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-200 dark:border-gray-500"
                             }`}
                           >
                             <span className="truncate mr-2">via {r.summary}</span>
@@ -472,27 +621,30 @@ function PlannerInner() {
           {/* Total summary */}
           {totalSeconds > 0 && (
             <div className="ml-7 animate-pop-in">
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 border border-blue-100">
+              <div className="bg-gradient-to-br from-blue-50 dark:from-blue-900/20 to-indigo-50 dark:to-indigo-900/20 rounded-2xl p-4 border border-blue-100 dark:border-blue-800">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-[10px] text-blue-500 font-bold uppercase tracking-wide">Total distance</p>
-                    <p className="text-xl font-extrabold text-blue-900">
-                      {legInfos.reduce((acc, leg) => acc + parseFloat(leg.routes[selectedRoutePerLeg[leg.legIndex] ?? 0]?.distance ?? "0"), 0).toFixed(0)} mi
+                    <p className="text-[10px] text-blue-500 dark:text-blue-400 font-bold uppercase tracking-wide">Total distance</p>
+                    <p className="text-xl font-extrabold text-blue-900 dark:text-blue-200">
+                      {formatStoredDistance(
+                        `${legInfos.reduce((acc, leg) => acc + parseFloat(leg.routes[selectedRoutePerLeg[leg.legIndex] ?? 0]?.distance ?? "0"), 0).toFixed(0)} mi`,
+                        distanceUnit
+                      )}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-blue-500 font-bold uppercase tracking-wide">Total drive time</p>
-                    <p className="text-xl font-extrabold text-blue-900">
+                    <p className="text-[10px] text-blue-500 dark:text-blue-400 font-bold uppercase tracking-wide">Total drive time</p>
+                    <p className="text-xl font-extrabold text-blue-900 dark:text-blue-200">
                       {(() => { const h = Math.floor(totalSeconds / 3600), m = Math.round((totalSeconds % 3600) / 60); return h > 0 ? `${h}h ${m}m` : `${m}m`; })()}
                     </p>
                   </div>
                 </div>
                 {arrivalTime && (
-                  <div className="mt-3 pt-3 border-t border-blue-100 flex items-center gap-2">
+                  <div className="mt-3 pt-3 border-t border-blue-100 dark:border-blue-800 flex items-center gap-2">
                     <Clock className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                     <div>
-                      <p className="text-[10px] text-blue-500 font-bold uppercase tracking-wide">Arrive around</p>
-                      <p className="text-lg font-extrabold text-blue-900">{arrivalTime}</p>
+                      <p className="text-[10px] text-blue-500 dark:text-blue-400 font-bold uppercase tracking-wide">Arrive around</p>
+                      <p className="text-lg font-extrabold text-blue-900 dark:text-blue-200">{arrivalTime}</p>
                     </div>
                   </div>
                 )}
@@ -502,7 +654,7 @@ function PlannerInner() {
         </div>
 
         {/* Action bar */}
-        <div className="p-5 border-t border-gray-100 space-y-3 bg-gray-50/50 animate-fade-in">
+        <div className="p-5 border-t border-gray-100 dark:border-gray-700 space-y-3 bg-gray-50/50 dark:bg-gray-900/50 animate-fade-in">
           <button type="button" onClick={() => window.open(buildGoogleMapsUrl(stops), "_blank")} disabled={!canOpenMaps}
             className="w-full flex items-center justify-center gap-2 bg-gray-900 text-white py-3 rounded-xl font-semibold text-sm hover:bg-gray-800 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm">
             <ExternalLink className="w-4 h-4" />
@@ -524,7 +676,7 @@ function PlannerInner() {
                 placeholder="Trip name (e.g. Route 66 Adventure)"
                 value={tripName}
                 onChange={(e) => { setTripName(e.target.value); setSaveStatus("idle"); setSaveError(""); }}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 text-sm text-gray-900 bg-white shadow-sm transition-all"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 shadow-sm transition-all"
               />
 
               {/* Primary save button */}
@@ -548,7 +700,7 @@ function PlannerInner() {
                   type="button"
                   onClick={handleSaveAsNew}
                   disabled={!canSave || saving || savingNew}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-sm bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-sm bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
                 >
                   {savingNew ? <Loader2 className="w-4 h-4 animate-spin" /> : <Copy className="w-4 h-4" />}
                   {savingNew ? "Saving…" : "Save as new trip"}
@@ -556,14 +708,14 @@ function PlannerInner() {
               )}
 
               {saveStatus === "error" && (
-                <div className="bg-red-50 border border-red-200 rounded-xl px-3 py-2 animate-fade-in">
+                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl px-3 py-2 animate-fade-in">
                   <p className="text-red-600 text-xs font-semibold">Failed to save</p>
                   {saveError && <p className="text-red-500 text-[11px] mt-0.5 break-words">{saveError}</p>}
                 </div>
               )}
             </div>
           ) : (
-            <p className="text-center text-xs text-gray-400">
+            <p className="text-center text-xs text-gray-400 dark:text-gray-400">
               <a href="/auth/login" className="text-blue-600 hover:underline font-semibold">Log in</a> to save your trips
             </p>
           )}
@@ -582,12 +734,12 @@ function PlannerInner() {
         }}
         onDoubleClick={() => setSidebarWidth(SIDEBAR_DEFAULT_WIDTH)}
         className={`group relative w-1.5 shrink-0 cursor-col-resize transition-colors ${
-          isResizing ? "bg-blue-400" : "bg-gray-100 hover:bg-blue-200"
+          isResizing ? "bg-blue-400" : "bg-gray-100 dark:bg-gray-700 hover:bg-blue-200"
         }`}
       >
         {/* Visual grip — appears on hover/drag */}
         <div
-          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-md bg-white border border-gray-200 shadow-sm w-4 h-10 transition-opacity ${
+          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-sm w-4 h-10 transition-opacity ${
             isResizing ? "opacity-100" : "opacity-0 group-hover:opacity-100"
           }`}
         >
@@ -602,6 +754,7 @@ function PlannerInner() {
           departureTime={departureTime}
           arrivalTime={arrivalTime}
           selectedRoutePerLeg={selectedRoutePerLeg}
+          distanceUnit={distanceUnit}
           onLegRouteSelect={handleLegRouteSelect}
           onAllLegsLoaded={handleAllLegsLoaded}
         />

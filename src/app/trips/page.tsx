@@ -5,6 +5,7 @@ import { CheckCircle2, Map as MapIcon, Navigation, Plus, Sparkles } from "lucide
 import AnimatedHeading from "@/components/AnimatedHeading";
 import ScrollReveal from "@/components/ScrollReveal";
 import TripsList from "@/components/TripsList";
+import JoinTripButton from "@/components/JoinTripButton";
 import { createClient } from "@/lib/supabase/server";
 import type { Trip } from "@/types";
 
@@ -16,18 +17,21 @@ export default async function TripsPage() {
 
   if (!user) redirect("/auth/login?redirectTo=/trips");
 
+  // All trips visible to this user (RLS: auth.uid() = ANY(user_ids))
   const { data: trips, error } = await supabase
     .from("trips")
     .select("*")
     .order("created_at", { ascending: false });
 
   const list = (trips as Trip[] | null) ?? [];
-  const total = list.length;
-  const active = list.filter((t) => !t.completed).length;
-  const completed = list.filter((t) => t.completed).length;
+  // Stats only for trips the user created (index 0)
+  const ownList = list.filter((t) => t.user_ids?.[0] === user.id);
+  const total = ownList.length;
+  const active = ownList.filter((t) => !t.completed).length;
+  const completed = ownList.filter((t) => t.completed).length;
 
   return (
-    <div className="relative min-h-[calc(100vh-64px)] mesh-bg">
+    <div className="relative min-h-[calc(100vh-64px)] mesh-bg dark:bg-gray-900">
       {/* Ambient backdrop — subtle, professional */}
       <div aria-hidden className="absolute inset-0 overflow-hidden pointer-events-none">
         <div
@@ -51,20 +55,23 @@ export default async function TripsPage() {
               <AnimatedHeading
                 text="My"
                 gradientText="Trips"
-                className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight leading-tight"
+                className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white tracking-tight leading-tight"
               />
               <p className="text-gray-500 mt-2 max-w-md">
-                Every route you&apos;ve mapped — pick up where you left off, mark them done, or kick off a new adventure.
+                <span className="text-gray-500 dark:text-gray-400">Every route you&apos;ve mapped — pick up where you left off, mark them done, or kick off a new adventure.</span>
               </p>
             </div>
 
-            <Link
-              href="/planner"
-              className="btn-shine btn-tap self-start sm:self-auto inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-3 rounded-2xl font-bold text-sm shadow-md hover:shadow-xl transition-shadow"
-            >
-              <Plus className="w-4 h-4" />
-              New trip
-            </Link>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <JoinTripButton />
+              <Link
+                href="/planner"
+                className="btn-shine btn-tap inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-3 rounded-2xl font-bold text-sm shadow-md hover:shadow-xl transition-shadow"
+              >
+                <Plus className="w-4 h-4" />
+                New trip
+              </Link>
+            </div>
           </div>
         </ScrollReveal>
 
@@ -97,11 +104,12 @@ export default async function TripsPage() {
         {/* ─── Trips list ─── */}
         <ScrollReveal variant="up" delay={140}>
           {error ? (
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-red-600 text-sm">
-              Failed to load trips. Please try again later.
+            <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-2xl p-6 text-red-600 text-sm space-y-1">
+              <p className="font-semibold">Failed to load trips.</p>
+              <p className="text-red-400 text-xs font-mono">{error.message}</p>
             </div>
           ) : (
-            <TripsList trips={list} />
+            <TripsList trips={list} userId={user.id} />
           )}
         </ScrollReveal>
       </div>
@@ -121,12 +129,12 @@ function StatCard({
   accent: string;
 }) {
   return (
-    <div className="lift relative overflow-hidden rounded-2xl bg-white/80 backdrop-blur-sm border border-gray-100 p-4 shadow-sm">
+    <div className="lift relative overflow-hidden rounded-2xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-100 dark:border-gray-700 p-4 shadow-sm">
       <div
         aria-hidden
         className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${accent}`}
       />
-      <div className="flex items-center gap-2 text-gray-400">
+      <div className="flex items-center gap-2 text-gray-400 dark:text-gray-400">
         <span
           className={`inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gradient-to-br ${accent} text-white shadow-sm`}
         >
@@ -136,7 +144,7 @@ function StatCard({
           {label}
         </p>
       </div>
-      <p className="text-3xl font-black text-gray-900 mt-2 tabular-nums">
+      <p className="text-3xl font-black text-gray-900 dark:text-white mt-2 tabular-nums">
         {value}
       </p>
     </div>

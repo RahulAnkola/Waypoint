@@ -49,10 +49,10 @@ export default function AboutPage() {
             <AnimatedHeading
               text="About"
               gradientText="Waypoint"
-              className="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-2 tracking-tight"
+              className="text-4xl sm:text-5xl font-extrabold text-gray-900 dark:text-white mb-2 tracking-tight"
             />
             <p
-              className="text-gray-500 text-lg animate-fade-in"
+              className="text-gray-500 dark:text-gray-400 text-lg animate-fade-in"
               style={{ animationDelay: "400ms" }}
             >
               A road trip planner built for the open road.
@@ -62,8 +62,8 @@ export default function AboutPage() {
 
         {/* ─── Developer card ─── */}
         <ScrollReveal variant="up" delay={120}>
-          <div className="lift bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md mb-8">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">
+          <div className="lift bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm hover:shadow-md mb-8">
+            <p className="text-[10px] font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest mb-4">
               About the Developer
             </p>
             <div className="flex items-center gap-4 mb-5">
@@ -74,14 +74,14 @@ export default function AboutPage() {
                 </div>
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Rahul Ankola</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Rahul Ankola</h2>
                 <p className="text-sm text-gray-500">
                   Full-stack developer &amp; road trip enthusiast
                 </p>
               </div>
             </div>
 
-            <p className="text-gray-600 text-sm leading-relaxed mb-5">
+            <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-5">
               Waypoint started as a personal project to scratch my own itch — I
               kept bouncing between Google Maps tabs while planning multi-stop
               road trips and wanted one clean place to plan, compare routes, and
@@ -112,7 +112,7 @@ export default function AboutPage() {
 
         {/* ─── Features ─── */}
         <ScrollReveal variant="up" delay={180}>
-          <div className="lift bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md mb-8">
+          <div className="lift bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm hover:shadow-md mb-8">
             <div className="flex items-center gap-2 mb-4">
               <Layers className="w-4 h-4 text-blue-600" />
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
@@ -127,7 +127,7 @@ export default function AboutPage() {
                   delay={i * 70}
                   threshold={0.1}
                 >
-                  <li className="flex items-start gap-2.5 text-sm text-gray-700">
+                  <li className="flex items-start gap-2.5 text-sm text-gray-700 dark:text-gray-300">
                     <span className="mt-1 w-1.5 h-1.5 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 shrink-0 shadow-[0_0_0_3px_rgba(59,130,246,0.1)]" />
                     {f}
                   </li>
@@ -139,7 +139,7 @@ export default function AboutPage() {
 
         {/* ─── Tech stack ─── */}
         <ScrollReveal variant="up" delay={240}>
-          <div className="lift bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-md mb-10">
+          <div className="lift bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm hover:shadow-md mb-10">
             <div className="flex items-center gap-2 mb-4">
               <Cpu className="w-4 h-4 text-violet-600" />
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
@@ -154,13 +154,13 @@ export default function AboutPage() {
                   delay={i * 60}
                   threshold={0.1}
                 >
-                  <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 border border-gray-100 hover:border-gray-200 hover:bg-gray-100/60 transition-colors">
+                  <div className="flex items-start gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600 hover:border-gray-200 hover:bg-gray-100/60 dark:hover:bg-gray-600 transition-colors">
                     <span
                       className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${t.color}`}
                     >
                       {t.name}
                     </span>
-                    <p className="text-[11px] text-gray-500 leading-snug mt-0.5">
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-snug mt-0.5">
                       {t.desc}
                     </p>
                   </div>
@@ -173,7 +173,7 @@ export default function AboutPage() {
         {/* ─── CTA ─── */}
         <ScrollReveal variant="up" delay={120}>
           <div className="text-center">
-            <p className="text-gray-400 text-sm mb-4">
+            <p className="text-gray-400 dark:text-gray-400 text-sm mb-4">
               Ready to plan your next adventure?
             </p>
             <Link

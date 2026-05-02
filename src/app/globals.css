@@ -7,6 +7,69 @@
   --foreground: #111827;
 }
 
+.dark {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+}
+
+.dark body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* dark autofill */
+.dark input,
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark input[type="time"],
+.dark input[type="search"],
+.dark textarea {
+  color: #f1f5f9 !important;
+  -webkit-text-fill-color: #f1f5f9 !important;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #f1f5f9 !important;
+  -webkit-box-shadow: 0 0 0px 1000px #1e293b inset !important;
+  box-shadow: 0 0 0px 1000px #1e293b inset !important;
+}
+
+/* dark Google Places dropdown */
+.dark .pac-container {
+  background: #1e293b;
+  border-color: #334155;
+}
+.dark .pac-item {
+  color: #e2e8f0 !important;
+  border-color: #334155;
+}
+.dark .pac-item:hover,
+.dark .pac-item-selected {
+  background: #1d3a6e;
+}
+.dark .pac-item-query {
+  color: #e2e8f0 !important;
+}
+
+/* dark scrollbar */
+.dark ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+/* Hero bottom fade — light → dark depending on mode */
+.hero-bottom-fade {
+  background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+}
+.dark .hero-bottom-fade {
+  background: linear-gradient(to bottom, rgba(15,23,42,0) 0%, rgba(15,23,42,1) 100%);
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -305,6 +368,14 @@ input:-webkit-autofill:focus {
 /* hide native cursor everywhere inside the road-trail card */
 .road-trail-zone,
 .road-trail-zone * {
+  cursor: none !important;
+}
+
+/* hide native cursor across an entire zone — used to make the custom
+   car cursor follow the mouse across the whole home page (the road
+   trail itself stays scoped to its own .road-trail-zone) */
+.car-cursor-zone,
+.car-cursor-zone * {
   cursor: none !important;
 }
 

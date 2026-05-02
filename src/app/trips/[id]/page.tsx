@@ -16,16 +16,15 @@ export default async function TripDetailPage({ params }: { params: Promise<{ id:
     .from("trips")
     .select("*")
     .eq("id", id)
-    .eq("user_id", user.id)
-    .single();
+    .single(); // RLS handles auth: owner OR member
 
   if (!data) notFound();
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10 animate-fade-in">
+    <div className="max-w-6xl mx-auto px-4 py-10 animate-fade-in">
       <Link
         href="/trips"
-        className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-blue-600 transition-colors mb-6 group"
+        className="inline-flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors mb-6 group"
       >
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
         Back to My Trips
