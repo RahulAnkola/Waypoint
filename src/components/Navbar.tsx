@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import { MapPin, LogOut, Map, BookMarked, Menu, X, Info, UserCircle2, Sun, Moon } from "lucide-react";
-import { applyTheme, getStoredTheme } from "@/components/ThemeProvider";
+import { applyTheme, resolveTheme, getStoredThemePref, setStoredThemePref } from "@/components/ThemeProvider";
 
 export default function Navbar() {
   const [user, setUser] = useState<User | null>(null);
@@ -46,12 +46,15 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Hydrate dark state on mount
+  // Hydrate dark state on mount; also listen for profile-page theme changes
   useEffect(() => {
-    const stored = getStoredTheme();
-    const preferred = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-    const theme = stored ?? preferred;
-    setIsDark(theme === "dark");
+    const sync = () => {
+      const pref = getStoredThemePref();
+      setIsDark(resolveTheme(pref) === "dark");
+    };
+    sync();
+    window.addEventListener("waypoint-theme-change", sync);
+    return () => window.removeEventListener("waypoint-theme-change", sync);
   }, []);
 
   // Close mobile menu when route changes.
@@ -69,7 +72,8 @@ export default function Navbar() {
     const next = isDark ? "light" : "dark";
     setIsDark(!isDark);
     applyTheme(next);
-    try { localStorage.setItem("waypoint-theme", next); } catch { /* ignore */ }
+    setStoredThemePref(next);
+    window.dispatchEvent(new Event("waypoint-theme-change"));
   };
 
   const isActive = (href: string) =>
