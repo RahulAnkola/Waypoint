@@ -11,6 +11,7 @@ import type { Trip, LegRoute, ChecklistItem, DistanceUnit } from "@/types";
 import { createClient } from "@/lib/supabase/client";
 import { getDistanceUnitLocal, formatStoredDistance } from "@/lib/mapsUtils";
 import MapsButton from "@/components/MapsButton";
+import WeatherBadge from "@/components/WeatherBadge";
 
 /* ─── helpers ─── */
 function formatTime12(t: string): string {
@@ -507,6 +508,7 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
                             </span>
                           </div>
                         )}
+                        <WeatherBadge lat={stop.lat} lng={stop.lng} arrivalTime24={arrTime ?? null} />
                       </div>
                     </div>
 
