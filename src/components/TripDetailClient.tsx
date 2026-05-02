@@ -14,6 +14,7 @@ import MapsButton from "@/components/MapsButton";
 import WeatherBadge from "@/components/WeatherBadge";
 import TollBadge from "@/components/TollBadge";
 import { fetchTollEstimate } from "@/lib/tollUtils";
+import { computeStopDate } from "@/lib/weatherUtils";
 
 /* ─── helpers ─── */
 function formatTime12(t: string): string {
@@ -371,6 +372,7 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
   const stops = [trip.origin, ...trip.waypoints, trip.destination];
   const legRoutes: LegRoute[] = trip.leg_routes ?? [];
   const depTime = trip.departure_time ?? null;
+  const depDate = trip.departure_date ?? null;
   const legCount = stops.length - 1;
   const [isCompleted, setIsCompleted] = useState(trip.completed);
   const isSyncingCompletion = useRef(false);
@@ -392,6 +394,13 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
     stopTimes.push(cur);
     legRoutes.forEach(leg => { cur = addSeconds(cur, leg.durationSeconds); stopTimes.push(cur); });
   }
+
+  /* calendar date for each stop (accounting for overnight drives) */
+  const stopDates: (string | undefined)[] = stops.map((_, i) => {
+    if (!depDate || !depTime) return undefined;
+    const elapsed = legRoutes.slice(0, i).reduce((a, l) => a + l.durationSeconds, 0);
+    return computeStopDate(depDate, depTime, elapsed);
+  });
 
   /* totals */
   const totalSeconds = legRoutes.reduce((a, l) => a + l.durationSeconds, 0);
@@ -551,7 +560,7 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
                             </span>
                           </div>
                         )}
-                        <WeatherBadge lat={stop.lat} lng={stop.lng} arrivalTime24={arrTime ?? null} />
+                        <WeatherBadge lat={stop.lat} lng={stop.lng} arrivalTime24={arrTime ?? null} date={stopDates[i]} />
                       </div>
                     </div>
 

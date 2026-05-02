@@ -9,20 +9,22 @@ interface Props {
   lat: number;
   lng: number;
   arrivalTime24: string | null;
+  /** Explicit YYYY-MM-DD date. When set, overrides the guess logic. */
+  date?: string;
 }
 
-export default function WeatherBadge({ lat, lng, arrivalTime24 }: Props) {
+export default function WeatherBadge({ lat, lng, arrivalTime24, date }: Props) {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetchWeather(lat, lng, arrivalTime24).then((data) => {
+    fetchWeather(lat, lng, arrivalTime24, date).then((data) => {
       if (!cancelled) { setWeather(data); setLoading(false); }
     });
     return () => { cancelled = true; };
-  }, [lat, lng, arrivalTime24]);
+  }, [lat, lng, arrivalTime24, date]);
 
   if (loading) {
     return (

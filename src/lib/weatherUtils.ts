@@ -5,7 +5,6 @@ export interface WeatherData {
   wmoCode: number;
 }
 
-// WMO weather code → emoji + label
 export function wmoToEmoji(code: number): string {
   if (code === 0) return "☀️";
   if (code <= 3) return "⛅";
@@ -32,7 +31,7 @@ export function wmoToLabel(code: number): string {
   return "Unknown";
 }
 
-const CACHE_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
+const CACHE_TTL_MS = 2 * 60 * 60 * 1000;
 
 function cacheKey(lat: number, lng: number, date: string): string {
   return `wm2_${lat.toFixed(2)}_${lng.toFixed(2)}_${date}`;
@@ -55,19 +54,32 @@ function writeCache(key: string, data: WeatherData) {
 }
 
 /**
- * Determine the forecast date based on arrivalTime24.
- * If arrival time is more than 3 h in the past (relative to now), use tomorrow.
+ * Compute the calendar date for a stop given departure date/time and elapsed seconds.
+ * Used when a departure date is explicitly set.
  */
-function forecastDate(arrivalTime24: string | null): string {
+export function computeStopDate(
+  departureDate: string,
+  departureTime24: string,
+  elapsedSeconds: number
+): string {
+  const [h, m] = departureTime24.split(":").map(Number);
+  const base = new Date(`${departureDate}T${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:00`);
+  base.setSeconds(base.getSeconds() + elapsedSeconds);
+  return base.toISOString().slice(0, 10);
+}
+
+/**
+ * Fallback: guess the forecast date from arrival time alone.
+ * If the arrival time is more than 3h in the past, assume tomorrow.
+ */
+function guessForecastDate(arrivalTime24: string | null): string {
   const now = new Date();
   const today = now.toISOString().slice(0, 10);
   if (!arrivalTime24) return today;
-
   const [h, m] = arrivalTime24.split(":").map(Number);
   const arrMinutes = h * 60 + m;
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
   if (nowMinutes - arrMinutes > 3 * 60) {
-    // arrival is more than 3h in the past → use tomorrow
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
     return tomorrow.toISOString().slice(0, 10);
@@ -78,9 +90,11 @@ function forecastDate(arrivalTime24: string | null): string {
 export async function fetchWeather(
   lat: number,
   lng: number,
-  arrivalTime24: string | null
+  arrivalTime24: string | null,
+  /** Explicit YYYY-MM-DD date. When provided, skips the guess logic. */
+  explicitDate?: string
 ): Promise<WeatherData | null> {
-  const date = forecastDate(arrivalTime24);
+  const date = explicitDate ?? guessForecastDate(arrivalTime24);
   const key = cacheKey(lat, lng, date);
   const cached = readCache(key);
   if (cached) return cached;
@@ -103,15 +117,10 @@ export async function fetchWeather(
     const hourly = json.hourly;
     if (!hourly || !hourly.time) return null;
 
-    // Pick the hour closest to arrival time, or noon if none given
     let targetHour = 12;
     if (arrivalTime24) targetHour = parseInt(arrivalTime24.split(":")[0], 10);
 
-    // Find index for target hour
-    const idx = hourly.time.findIndex((t: string) => {
-      const h = new Date(t).getHours();
-      return h === targetHour;
-    });
+    const idx = hourly.time.findIndex((t: string) => new Date(t).getHours() === targetHour);
     const i = idx >= 0 ? idx : Math.min(12, hourly.time.length - 1);
 
     const data: WeatherData = {

@@ -59,6 +59,7 @@ export interface Trip {
   completed: boolean;
   leg_routes: LegRoute[];
   departure_time: string | null;
+  departure_date: string | null;
   notes: string | null;
   checklist: ChecklistItem[] | null;
   share_code: string | null;

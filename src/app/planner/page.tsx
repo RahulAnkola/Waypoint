@@ -240,6 +240,9 @@ function PlannerInner() {
     const h = m >= 60 ? (now.getHours() + 1) % 24 : now.getHours();
     return `${String(h).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
   });
+  const [departureDate, setDepartureDate] = useState<string>(
+    new Date().toISOString().slice(0, 10)
+  );
   const [legInfos, setLegInfos] = useState<LegInfo[]>([]);
   const [selectedRoutePerLeg, setSelectedRoutePerLeg] = useState<number[]>([]);
   const [savedLegRoutes, setSavedLegRoutes] = useState<LegRoute[]>([]);
@@ -307,12 +310,13 @@ function PlannerInner() {
   }, [isResizing]);
 
   const handleTripLoaded = useCallback(
-    (data: { name: string; origin: PlaceResult; destination: PlaceResult; waypoints: PlaceResult[]; departure_time: string | null; leg_routes: LegRoute[] }) => {
+    (data: { name: string; origin: PlaceResult; destination: PlaceResult; waypoints: PlaceResult[]; departure_time: string | null; departure_date: string | null; leg_routes: LegRoute[] }) => {
       setTripName(data.name);
       setOrigin(data.origin);
       setDestination(data.destination);
       setWaypoints(data.waypoints.map((p) => ({ id: newWpId(), place: p })));
       if (data.departure_time) setDepartureTime(data.departure_time);
+      if (data.departure_date) setDepartureDate(data.departure_date);
       setSavedLegRoutes(data.leg_routes);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -445,6 +449,7 @@ function PlannerInner() {
       waypoints: waypoints.filter((w) => w.place).map((w) => w.place!),
       leg_routes: buildLegRoutes(),
       departure_time: departureTime || null,
+      departure_date: departureDate || null,
     };
 
     // UPDATE: don't touch user_ids (members stay as-is)
@@ -485,6 +490,7 @@ function PlannerInner() {
       completed: false,
       leg_routes: buildLegRoutes(),
       departure_time: departureTime || null,
+      departure_date: departureDate || null,
     });
 
     setSavingNew(false);
@@ -591,25 +597,42 @@ function PlannerInner() {
             Add a stop
           </button>
 
-          {/* Departure time */}
+          {/* Departure date + time */}
           {stops.length > 0 && (
-            <div className="ml-7 animate-slide-up delay-150">
-              <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest mb-1.5">Departure time</label>
-              <div className="flex items-center gap-2">
-                <div className="flex flex-col shrink-0">
-                  <button type="button" onClick={() => stepTime(15)} className="p-1 rounded-t-lg border border-gray-200 dark:border-gray-600 border-b-0 bg-white dark:bg-gray-700 hover:bg-blue-50 hover:text-blue-600 text-gray-400 transition-colors" title="+15 min">
-                    <ChevronUp className="w-3.5 h-3.5" />
-                  </button>
-                  <button type="button" onClick={() => stepTime(-15)} className="p-1 rounded-b-lg border border-gray-200 dark:border-gray-600 border-t-0 bg-white dark:bg-gray-700 hover:bg-blue-50 hover:text-blue-600 text-gray-400 transition-colors" title="-15 min">
-                    <ChevronDown className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <div className="relative flex-1">
-                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
-                  <input type="time" value={departureTime} onChange={(e) => setDepartureTime(e.target.value)} className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 hover:border-gray-300 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 shadow-sm transition-all" />
+            <div className="ml-7 animate-slide-up delay-150 space-y-2">
+              {/* Date picker */}
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest mb-1.5">Departure date</label>
+                <input
+                  type="date"
+                  value={departureDate}
+                  onChange={(e) => setDepartureDate(e.target.value)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 hover:border-gray-300 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 shadow-sm transition-all"
+                />
+              </div>
+              {/* Time picker */}
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest mb-1.5">Departure time</label>
+                <div className="flex items-center gap-2">
+                  <div className="flex flex-col shrink-0">
+                    <button type="button" onClick={() => stepTime(15)} className="p-1 rounded-t-lg border border-gray-200 dark:border-gray-600 border-b-0 bg-white dark:bg-gray-700 hover:bg-blue-50 hover:text-blue-600 text-gray-400 transition-colors" title="+15 min">
+                      <ChevronUp className="w-3.5 h-3.5" />
+                    </button>
+                    <button type="button" onClick={() => stepTime(-15)} className="p-1 rounded-b-lg border border-gray-200 dark:border-gray-600 border-t-0 bg-white dark:bg-gray-700 hover:bg-blue-50 hover:text-blue-600 text-gray-400 transition-colors" title="-15 min">
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <div className="relative flex-1">
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
+                    <input type="time" value={departureTime} onChange={(e) => setDepartureTime(e.target.value)} className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 hover:border-gray-300 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 shadow-sm transition-all" />
+                  </div>
                 </div>
               </div>
-              {departureTime && <p className="text-xs text-gray-400 dark:text-gray-400 mt-1.5 ml-10">Leaving at {formatTime12(departureTime)}</p>}
+              {departureTime && departureDate && (
+                <p className="text-xs text-gray-400 dark:text-gray-400 ml-10">
+                  Leaving {new Date(departureDate + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })} at {formatTime12(departureTime)}
+                </p>
+              )}
             </div>
           )}
 

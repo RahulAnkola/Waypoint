@@ -12,6 +12,7 @@ interface Props {
     destination: PlaceResult;
     waypoints: PlaceResult[];
     departure_time: string | null;
+    departure_date: string | null;
     leg_routes: LegRoute[];
   }) => void;
 }
@@ -33,6 +34,7 @@ export default function PlannerLoader({ tripId, onLoaded }: Props) {
             destination: trip.destination,
             waypoints: trip.waypoints,
             departure_time: trip.departure_time,
+            departure_date: trip.departure_date,
             leg_routes: trip.leg_routes ?? [],
           });
         }
