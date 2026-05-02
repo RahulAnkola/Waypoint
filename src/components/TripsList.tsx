@@ -118,7 +118,11 @@ function TripCard({
               </span>
             )}
           </div>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{formatDate(trip.created_at)}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+            {trip.departure_date
+              ? formatDate(trip.departure_date + "T12:00:00")
+              : formatDate(trip.created_at)}
+          </p>
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {/* Share button — only for owners */}

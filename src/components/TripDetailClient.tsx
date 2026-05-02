@@ -471,7 +471,11 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
             <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white leading-tight">{trip.name}</h1>
             <PartyPopup userIds={trip.user_ids ?? []} />
           </div>
-          <p className="text-sm text-gray-400 dark:text-gray-400 mt-1">{formatDate(trip.created_at)}</p>
+          <p className="text-sm text-gray-400 dark:text-gray-400 mt-1">
+            {trip.departure_date
+              ? formatDate(trip.departure_date + "T12:00:00")
+              : formatDate(trip.created_at)}
+          </p>
         </div>
         {isCompleted && (
           <span className="flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-xs font-bold px-3 py-1.5 rounded-full border border-emerald-200 shrink-0 mt-1">
