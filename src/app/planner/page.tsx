@@ -892,7 +892,32 @@ function PlannerInner() {
           onAllLegsLoaded={handleAllLegsLoaded}
         />
         {stops.length >= 2 && (
-          <AiChat tripContext={tripContext} containerRef={mapContainerRef} />
+          <AiChat
+            tripContext={tripContext}
+            containerRef={mapContainerRef}
+            onAddStop={(name, address) => {
+              if (!window.google?.maps) return;
+              new window.google.maps.Geocoder().geocode(
+                { address: `${name}, ${address}` },
+                (results, status) => {
+                  if (status === "OK" && results?.[0]) {
+                    const loc = results[0].geometry.location;
+                    setWaypoints(prev => [
+                      ...prev,
+                      {
+                        id: `wp-${++wpIdCounter.current}`,
+                        place: {
+                          address: results[0].formatted_address,
+                          lat: loc.lat(),
+                          lng: loc.lng(),
+                        },
+                      },
+                    ]);
+                  }
+                }
+              );
+            }}
+          />
         )}
       </div>
     </div>
