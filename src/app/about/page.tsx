@@ -11,21 +11,30 @@ import AnimatedHeading from "@/components/AnimatedHeading";
 import DeveloperCard from "@/components/DeveloperCard";
 
 const TECH_STACK = [
-  { name: "Next.js 16", desc: "App Router, server & client components", color: "bg-gray-900 text-white" },
-  { name: "Supabase",   desc: "PostgreSQL database + auth",            color: "bg-emerald-600 text-white" },
-  { name: "Google Maps API", desc: "Directions, Places, geocoding",    color: "bg-blue-600 text-white" },
-  { name: "Tailwind CSS", desc: "Utility-first styling",               color: "bg-sky-500 text-white" },
-  { name: "TypeScript", desc: "End-to-end type safety",                color: "bg-blue-700 text-white" },
-  { name: "Vercel",     desc: "Deployment & edge hosting",             color: "bg-black text-white" },
+  { name: "Next.js 16",       desc: "App Router, server & client components",   color: "bg-gray-900 text-white" },
+  { name: "Supabase",         desc: "PostgreSQL database + auth",                color: "bg-emerald-600 text-white" },
+  { name: "Google Maps API",  desc: "Directions, Places, geocoding",             color: "bg-blue-600 text-white" },
+  { name: "Gemini AI",        desc: "AI trip assistant & stop suggestions",      color: "bg-violet-600 text-white" },
+  { name: "Resend",           desc: "Transactional email for contact forms",     color: "bg-orange-500 text-white" },
+  { name: "Open-Meteo",       desc: "Weather forecasts for trip dates",          color: "bg-cyan-600 text-white" },
+  { name: "Tailwind CSS",     desc: "Utility-first styling",                     color: "bg-sky-500 text-white" },
+  { name: "TypeScript",       desc: "End-to-end type safety",                    color: "bg-blue-700 text-white" },
+  { name: "Vercel",           desc: "Deployment, edge hosting & analytics",      color: "bg-black text-white" },
 ];
 
 const FEATURES = [
-  "Multi-stop route planning with Google Maps integration",
-  "Per-leg route alternatives — pick the best road for each segment",
-  "Departure time & arrival time calculation",
-  "Save, edit, and organise trips with a free account",
-  "Trip progress tracking with per-leg completion checks",
-  "Open any leg or the full route directly in Google Maps",
+  "Multi-stop route planning with real Google Maps directions",
+  "Per-leg route alternatives — compare roads, times, and distances for each segment",
+  "AI trip assistant — chat while planning, get real place suggestions, add stops in one tap",
+  "Weather forecasts for each stop on your travel date",
+  "Toll cost estimates per leg with a running total",
+  "Departure time and live arrival time calculation",
+  "Dark mode and mi / km distance unit preference",
+  "Drag-and-drop stop reordering",
+  "Trip sharing with a unique invite link — plan together",
+  "Save, edit, and organise trips across devices with a free account",
+  "Per-leg trip progress tracking with completion checks",
+  "Open any leg or the full route in Google Maps, Apple Maps, or Waze",
 ];
 
 export default function AboutPage() {
@@ -53,7 +62,7 @@ export default function AboutPage() {
               className="text-gray-500 dark:text-gray-400 text-lg animate-fade-in"
               style={{ animationDelay: "400ms" }}
             >
-              A road trip planner built for the open road.
+              A road trip planner built for the open road — with AI, weather, and everything in between.
             </p>
           </div>
         </ScrollReveal>

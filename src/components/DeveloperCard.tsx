@@ -28,9 +28,10 @@ export default function DeveloperCard() {
 
         <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-5">
           Waypoint started as a personal project to scratch my own itch — I
-          kept bouncing between Google Maps tabs while planning multi-stop
-          road trips and wanted one clean place to plan, compare routes, and
-          track progress on the road.
+          kept bouncing between Google Maps tabs, weather apps, and note pads
+          while planning road trips. I wanted one clean place to plan routes,
+          compare alternatives, check the weather, track progress, and now even
+          chat with an AI that actually knows the road.
         </p>
 
         <button
