@@ -891,6 +891,12 @@ function PlannerInner() {
           onLegRouteSelect={handleLegRouteSelect}
           onAllLegsLoaded={handleAllLegsLoaded}
         />
+        {stops.length < 2 && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-gray-200 dark:border-gray-600 shadow-md text-gray-400 dark:text-gray-500 text-sm font-medium pointer-events-none select-none">
+            <svg className="w-4 h-4 text-violet-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
+            Enter origin and destination to chat with AI
+          </div>
+        )}
         {stops.length >= 2 && (
           <AiChat
             tripContext={tripContext}

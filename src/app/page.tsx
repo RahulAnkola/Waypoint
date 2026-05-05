@@ -10,6 +10,7 @@ import {
   Navigation,
   Search,
   CheckCircle2,
+  MessageCircle,
 } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 import AnimatedHeading from "@/components/AnimatedHeading";
@@ -102,9 +103,19 @@ export default async function Home() {
             className="text-lg sm:text-xl text-blue-100/90 max-w-2xl mx-auto leading-relaxed animate-fade-in"
             style={{ animationDelay: "560ms" }}
           >
-            Build multi-stop routes, compare alternatives for every leg, and hit
-            the open road — powered by Google Maps, free for everyone.
+            Build multi-stop routes, compare alternatives, and let an AI trip
+            companion suggest stops, food, and sights — powered by Google Maps,
+            free for everyone.
           </p>
+
+          {/* AI badge */}
+          <div
+            className="inline-flex items-center gap-2 mt-6 px-4 py-2 rounded-full bg-violet-500/20 border border-violet-400/30 text-violet-200 text-sm font-semibold animate-fade-in"
+            style={{ animationDelay: "800ms" }}
+          >
+            <Sparkles className="w-4 h-4 text-violet-300" />
+            AI trip assistant built-in — asks questions, suggests real stops
+          </div>
 
           {/* CTAs */}
           <div
@@ -201,7 +212,7 @@ export default async function Home() {
             </div>
           </ScrollReveal>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {FEATURES.map((f, i) => (
               <ScrollReveal key={f.title} variant="up" delay={i * 120}>
                 <FeatureCard {...f} />
@@ -321,11 +332,19 @@ const FEATURES = [
     gradient: "from-blue-500 to-cyan-500",
   },
   {
+    icon: MessageCircle,
+    title: "AI Trip Assistant",
+    description:
+      "Chat with an AI companion while you plan. Ask about food, sights, rest stops — it suggests real named places you can add to your route in one tap.",
+    gradient: "from-violet-500 to-purple-500",
+    badge: "New",
+  },
+  {
     icon: BookMarked,
     title: "Save Your Trips",
     description:
       "Create an account and save all your road trip plans. Pick up exactly where you left off, on any device.",
-    gradient: "from-violet-500 to-fuchsia-500",
+    gradient: "from-fuchsia-500 to-pink-500",
   },
   {
     icon: ExternalLink,
@@ -375,11 +394,13 @@ function FeatureCard({
   title,
   description,
   gradient,
+  badge,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   title: string;
   description: string;
   gradient: string;
+  badge?: string;
 }) {
   return (
     <div className="group lift relative h-full overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-7 hover:bg-white/10 hover:border-white/20 transition-all">
@@ -389,10 +410,17 @@ function FeatureCard({
         className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}
       />
 
-      <div
-        className={`relative inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-lg shadow-black/30 mb-5 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110`}
-      >
-        <Icon className="w-7 h-7" />
+      <div className="relative flex items-start justify-between mb-5">
+        <div
+          className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-lg shadow-black/30 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110`}
+        >
+          <Icon className="w-7 h-7" />
+        </div>
+        {badge && (
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full bg-violet-500/30 border border-violet-400/40 text-violet-300">
+            {badge}
+          </span>
+        )}
       </div>
 
       <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
