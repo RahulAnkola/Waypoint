@@ -16,6 +16,7 @@ import ScrollReveal from "@/components/ScrollReveal";
 import AnimatedHeading from "@/components/AnimatedHeading";
 import RoadTrail from "@/components/RoadTrail";
 import HomePageCarCursor from "@/components/HomePageCarCursor";
+import HomeFooter from "@/components/HomeFooter";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function Home() {
@@ -316,6 +317,8 @@ export default async function Home() {
           </ScrollReveal>
         </div>
       </section>
+
+      <HomeFooter />
     </div>
     </HomePageCarCursor>
   );

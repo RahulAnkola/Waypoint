@@ -39,3 +39,22 @@ $$ language plpgsql;
 create trigger trips_updated_at
   before update on public.trips
   for each row execute procedure public.handle_updated_at();
+
+-- Reviews table
+create table if not exists public.reviews (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users(id) on delete set null,
+  stars smallint not null check (stars between 1 and 5),
+  message text,
+  created_at timestamp with time zone default now()
+);
+
+alter table public.reviews enable row level security;
+
+-- Anyone can insert a review (logged-in or anonymous)
+create policy "insert_reviews" on public.reviews
+  for insert with check (true);
+
+-- Only the owner can read their own reviews; service role can read all
+create policy "select_own_reviews" on public.reviews
+  for select using (auth.uid() = user_id);
