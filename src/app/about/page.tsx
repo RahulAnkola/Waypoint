@@ -1,9 +1,6 @@
 import Link from "next/link";
 import {
   MapPin,
-  Github,
-  Mail,
-  ExternalLink,
   Code2,
   Layers,
   Cpu,
@@ -11,6 +8,7 @@ import {
 } from "lucide-react";
 import ScrollReveal from "@/components/ScrollReveal";
 import AnimatedHeading from "@/components/AnimatedHeading";
+import DeveloperCard from "@/components/DeveloperCard";
 
 const TECH_STACK = [
   { name: "Next.js 16", desc: "App Router, server & client components", color: "bg-gray-900 text-white" },
@@ -62,52 +60,7 @@ export default function AboutPage() {
 
         {/* ─── Developer card ─── */}
         <ScrollReveal variant="up" delay={120}>
-          <div className="lift bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm hover:shadow-md mb-8">
-            <p className="text-[10px] font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest mb-4">
-              About the Developer
-            </p>
-            <div className="flex items-center gap-4 mb-5">
-              <div className="relative w-14 h-14 shrink-0">
-                <span className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 blur-md opacity-60 animate-pulse-glow" />
-                <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center text-white font-bold text-xl shadow-md">
-                  R
-                </div>
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Rahul Ankola</h2>
-                <p className="text-sm text-gray-500">
-                  Full-stack developer &amp; road trip enthusiast
-                </p>
-              </div>
-            </div>
-
-            <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-5">
-              Waypoint started as a personal project to scratch my own itch — I
-              kept bouncing between Google Maps tabs while planning multi-stop
-              road trips and wanted one clean place to plan, compare routes, and
-              track progress on the road.
-            </p>
-
-            <div className="flex flex-wrap gap-2">
-              <a
-                href="mailto:rahulankola13@gmail.com"
-                className="btn-tap inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:border-blue-300 hover:text-blue-700 hover:bg-blue-50 transition-all"
-              >
-                <Mail className="w-3.5 h-3.5" />
-                rahulankola13@gmail.com
-              </a>
-              <a
-                href="https://github.com/rahulankola"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-tap inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-semibold text-gray-600 hover:border-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-all"
-              >
-                <Github className="w-3.5 h-3.5" />
-                GitHub
-                <ExternalLink className="w-2.5 h-2.5 opacity-50" />
-              </a>
-            </div>
-          </div>
+          <DeveloperCard />
         </ScrollReveal>
 
         {/* ─── Features ─── */}
