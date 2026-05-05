@@ -8,7 +8,6 @@ export default async function ProfilePage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/auth/login?redirectTo=/profile");
 
-  // Upsert so the row always exists (handles users created before the trigger)
   await supabase.from("profiles").upsert({ id: user.id }, { onConflict: "id", ignoreDuplicates: true });
 
   const { data } = await supabase
@@ -26,12 +25,34 @@ export default async function ProfilePage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12 animate-fade-in">
-      <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white">Profile</h1>
-        <p className="text-sm text-gray-400 dark:text-gray-400 mt-1">{user.email}</p>
+    <div style={{ background: "var(--alm-bg)", color: "var(--alm-ink)", minHeight: "calc(100vh - 100px)" }}>
+      {/* Masthead */}
+      <div
+        style={{
+          padding: "40px 28px 28px",
+          borderBottom: "2px solid var(--alm-ink)",
+          maxWidth: 1100,
+          margin: "0 auto",
+        }}
+      >
+        <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 11, letterSpacing: "0.3em", color: "var(--alm-red)", textTransform: "uppercase", marginBottom: 8 }}>
+          ★ Membership card ★
+        </div>
+        <h1
+          className="alm-display"
+          style={{ fontSize: "clamp(44px, 7vw, 72px)", lineHeight: 0.9, margin: "0 0 8px", fontWeight: 400, letterSpacing: "-0.03em" }}
+        >
+          Profile
+        </h1>
+        <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 12, color: "var(--alm-ink2)", letterSpacing: "0.05em" }}>
+          {user.email}
+        </div>
       </div>
-      <ProfileClient profile={profile} userEmail={user.email ?? ""} />
+
+      {/* Content */}
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px", background: "var(--alm-cream)" }}>
+        <ProfileClient profile={profile} userEmail={user.email ?? ""} />
+      </div>
     </div>
   );
 }

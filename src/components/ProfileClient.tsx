@@ -9,39 +9,57 @@ import {
   Eye, EyeOff, Gauge,
 } from "lucide-react";
 
-/* ── tiny reusable status row ── */
 function StatusRow({ status, error }: { status: "idle" | "success" | "error"; error?: string }) {
   if (status === "idle") return null;
   if (status === "success")
     return (
-      <p className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 animate-fade-in">
+      <p
+        className="flex items-center gap-1.5 animate-fade-in"
+        style={{ fontSize: 12, fontWeight: 600, color: "var(--alm-green)", fontFamily: "var(--font-mono, monospace)" }}
+      >
         <CheckCircle2 className="w-3.5 h-3.5" /> Saved!
       </p>
     );
   return (
     <div className="flex items-start gap-1.5 animate-fade-in">
-      <AlertCircle className="w-3.5 h-3.5 text-red-500 mt-0.5 shrink-0" />
-      <p className="text-xs text-red-500">{error || "Something went wrong."}</p>
+      <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: "var(--alm-red)" }} />
+      <p style={{ fontSize: 12, color: "var(--alm-red)" }}>{error || "Something went wrong."}</p>
     </div>
   );
 }
 
-/* ── card wrapper ── */
 function Card({ icon, title, children }: {
   icon: React.ReactNode; title: string; children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm h-fit">
+    <div
+      style={{
+        background: "var(--alm-cream)",
+        border: "2px solid var(--alm-rule)",
+        borderRadius: 4,
+        padding: 24,
+      }}
+    >
       <div className="flex items-center gap-2 mb-5">
-        <span className="text-blue-600">{icon}</span>
-        <h2 className="text-sm font-bold text-gray-700 dark:text-gray-200 uppercase tracking-widest">{title}</h2>
+        <span style={{ color: "var(--alm-red)" }}>{icon}</span>
+        <h2
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: "var(--alm-ink)",
+            textTransform: "uppercase",
+            letterSpacing: "0.2em",
+            fontFamily: "var(--font-mono, monospace)",
+          }}
+        >
+          {title}
+        </h2>
       </div>
       {children}
     </div>
   );
 }
 
-/* ── maps preference labels ── */
 const PREF_OPTIONS: { id: MapsPreference; label: string; sub: string }[] = [
   { id: "google", label: "Google Maps",    sub: "Default — works on all devices" },
   { id: "apple",  label: "Apple Maps",     sub: "Best on iPhone & Mac" },
@@ -49,7 +67,20 @@ const PREF_OPTIONS: { id: MapsPreference; label: string; sub: string }[] = [
   { id: "ask",    label: "Ask every time", sub: "Choose per tap" },
 ];
 
-/* ─────────────────────────────────────────── */
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "10px 14px",
+  border: "2px solid var(--alm-rule)",
+  borderRadius: 4,
+  fontSize: 14,
+  color: "var(--alm-ink)",
+  background: "var(--alm-bg)",
+  outline: "none",
+  fontFamily: "inherit",
+  transition: "border-color 150ms",
+  boxSizing: "border-box",
+};
+
 export default function ProfileClient({
   profile,
   userEmail,
@@ -57,25 +88,21 @@ export default function ProfileClient({
   profile: UserProfile;
   userEmail: string;
 }) {
-  /* ── username ── */
   const [username, setUsername]   = useState(profile.username ?? "");
   const [userSaving, setUserSaving] = useState(false);
   const [userStatus, setUserStatus] = useState<"idle" | "success" | "error">("idle");
   const [userError, setUserError]   = useState("");
 
-  /* ── maps preference ── */
   const [mapsPref, setMapsPref]     = useState<MapsPreference>(profile.maps_preference ?? "google");
   const [mapsSaving, setMapsSaving] = useState(false);
   const [mapsStatus, setMapsStatus] = useState<"idle" | "success" | "error">("idle");
   const [mapsError, setMapsError]   = useState("");
 
-  /* ── distance unit ── */
   const [distUnit, setDistUnit]       = useState<DistanceUnit>(profile.distance_unit ?? "mi");
   const [unitSaving, setUnitSaving]   = useState(false);
   const [unitStatus, setUnitStatus]   = useState<"idle" | "success" | "error">("idle");
   const [unitError, setUnitError]     = useState("");
 
-  /* ── password ── */
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw]         = useState("");
   const [confirmPw, setConfirmPw] = useState("");
@@ -85,13 +112,11 @@ export default function ProfileClient({
   const [pwStatus, setPwStatus]   = useState<"idle" | "success" | "error">("idle");
   const [pwError, setPwError]     = useState("");
 
-  // Sync localStorage preferences on mount
   useEffect(() => {
     setMapsPreferenceLocal(profile.maps_preference ?? "google");
     setDistanceUnitLocal(profile.distance_unit ?? "mi");
   }, [profile.maps_preference, profile.distance_unit]);
 
-  /* ── handlers ── */
   const saveUsername = async () => {
     const trimmed = username.trim();
     if (!trimmed) { setUserStatus("error"); setUserError("Name can't be empty."); return; }
@@ -162,10 +187,17 @@ export default function ProfileClient({
     }
   };
 
-  /* ── input shared class ── */
-  const inputCls =
-    "w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 " +
-    "focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 shadow-sm transition-all";
+  const eyeBtnStyle: React.CSSProperties = {
+    position: "absolute",
+    right: 12,
+    top: "50%",
+    transform: "translateY(-50%)",
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    color: "var(--alm-ink2)",
+    padding: 0,
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -173,9 +205,9 @@ export default function ProfileClient({
       {/* ══ LEFT COLUMN ══ */}
       <div className="space-y-6">
 
-        {/* ── Display name ── */}
+        {/* Display name */}
         <Card icon={<User className="w-4 h-4" />} title="Display name">
-          <p className="text-xs text-gray-400 dark:text-gray-400 mb-3">
+          <p style={{ fontSize: 13, color: "var(--alm-ink2)", marginBottom: 12 }}>
             Shown in the navbar instead of your email address.
           </p>
           <input
@@ -184,14 +216,27 @@ export default function ProfileClient({
             onChange={e => { setUsername(e.target.value); setUserStatus("idle"); }}
             placeholder="e.g. Alex"
             maxLength={32}
-            className={inputCls}
+            style={inputStyle}
+            onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "var(--alm-ink)"; }}
+            onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = "var(--alm-rule)"; }}
           />
           <div className="flex items-center justify-between mt-3">
             <StatusRow status={userStatus} error={userError} />
             <button
               onClick={saveUsername}
               disabled={userSaving}
-              className="ml-auto flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 active:scale-[0.97] transition-all"
+              className="ml-auto flex items-center gap-1.5 px-4 py-2 text-sm font-semibold disabled:opacity-50 active:scale-[0.97] transition-all"
+              style={{
+                background: "var(--alm-ink)",
+                color: "var(--alm-cream)",
+                border: "2px solid var(--alm-ink)",
+                borderRadius: 4,
+                boxShadow: "3px 3px 0 var(--alm-red)",
+                fontFamily: "var(--font-mono, monospace)",
+                fontSize: 12,
+                letterSpacing: "0.05em",
+                cursor: userSaving ? "not-allowed" : "pointer",
+              }}
             >
               {userSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
               Save
@@ -199,36 +244,47 @@ export default function ProfileClient({
           </div>
         </Card>
 
-        {/* ── Distance unit ── */}
+        {/* Distance unit */}
         <Card icon={<Gauge className="w-4 h-4" />} title="Distance unit">
-          <p className="text-xs text-gray-400 mb-4">
+          <p style={{ fontSize: 13, color: "var(--alm-ink2)", marginBottom: 16 }}>
             Controls how distances are shown across all trips and the planner.
           </p>
 
-          {/* Toggle pill */}
-          <div className="flex items-center gap-1 p-1 bg-gray-100 dark:bg-gray-700 rounded-xl w-fit">
+          <div
+            className="flex items-center gap-1 p-1 w-fit"
+            style={{
+              background: "var(--alm-bg)",
+              border: "2px solid var(--alm-rule)",
+              borderRadius: 4,
+            }}
+          >
             {(["mi", "km"] as DistanceUnit[]).map((unit) => (
               <button
                 key={unit}
                 type="button"
                 onClick={() => saveDistUnit(unit)}
-                className={`relative px-6 py-2 rounded-lg text-sm font-bold transition-all duration-200 active:scale-[0.97] ${
-                  distUnit === unit
-                    ? "bg-white dark:bg-gray-600 text-blue-700 shadow-sm ring-1 ring-gray-200 dark:ring-gray-500"
-                    : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
-                }`}
+                className="relative px-6 py-2 text-sm font-bold transition-all duration-200 active:scale-[0.97]"
+                style={{
+                  borderRadius: 2,
+                  fontFamily: "var(--font-mono, monospace)",
+                  fontSize: 13,
+                  background: distUnit === unit ? "var(--alm-ink)" : "transparent",
+                  color: distUnit === unit ? "var(--alm-cream)" : "var(--alm-ink2)",
+                  border: "none",
+                  cursor: "pointer",
+                }}
               >
                 {unit === "mi" ? "mi" : "km"}
                 {distUnit === unit && unitSaving && (
                   <span className="absolute -top-1 -right-1">
-                    <Loader2 className="w-3 h-3 text-blue-500 animate-spin" />
+                    <Loader2 className="w-3 h-3 animate-spin" style={{ color: "var(--alm-red)" }} />
                   </span>
                 )}
               </button>
             ))}
           </div>
 
-          <p className="text-xs text-gray-400 dark:text-gray-400 mt-3">
+          <p style={{ fontSize: 12, color: "var(--alm-ink2)", marginTop: 12, fontFamily: "var(--font-mono, monospace)" }}>
             {distUnit === "mi"
               ? "Showing distances in miles (mi)"
               : "Showing distances in kilometres (km)"}
@@ -239,52 +295,55 @@ export default function ProfileClient({
           </div>
         </Card>
 
-        {/* ── Change password ── */}
+        {/* Change password */}
         <Card icon={<Lock className="w-4 h-4" />} title="Change password">
           <div className="space-y-3">
-            {/* Current password */}
-            <div className="relative">
+            <div style={{ position: "relative" }}>
               <input
                 type={showCurr ? "text" : "password"}
                 value={currentPw}
                 onChange={e => { setCurrentPw(e.target.value); setPwStatus("idle"); }}
                 placeholder="Current password"
-                className={`${inputCls} pr-10`}
+                style={{ ...inputStyle, paddingRight: 40 }}
+                onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "var(--alm-ink)"; }}
+                onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = "var(--alm-rule)"; }}
               />
               <button
                 type="button"
                 onClick={() => setShowCurr(s => !s)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                style={eyeBtnStyle}
               >
                 {showCurr ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
 
-            {/* New password */}
-            <div className="relative">
+            <div style={{ position: "relative" }}>
               <input
                 type={showNew ? "text" : "password"}
                 value={newPw}
                 onChange={e => { setNewPw(e.target.value); setPwStatus("idle"); }}
                 placeholder="New password (min 6 chars)"
-                className={`${inputCls} pr-10`}
+                style={{ ...inputStyle, paddingRight: 40 }}
+                onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "var(--alm-ink)"; }}
+                onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = "var(--alm-rule)"; }}
               />
               <button
                 type="button"
                 onClick={() => setShowNew(s => !s)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                style={eyeBtnStyle}
               >
                 {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
 
-            {/* Confirm */}
             <input
               type="password"
               value={confirmPw}
               onChange={e => { setConfirmPw(e.target.value); setPwStatus("idle"); }}
               placeholder="Confirm new password"
-              className={inputCls}
+              style={inputStyle}
+              onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "var(--alm-ink)"; }}
+              onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = "var(--alm-rule)"; }}
             />
           </div>
 
@@ -293,7 +352,18 @@ export default function ProfileClient({
             <button
               onClick={savePassword}
               disabled={pwSaving || !currentPw || !newPw || !confirmPw}
-              className="ml-auto flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold bg-gray-900 text-white hover:bg-gray-800 disabled:opacity-40 active:scale-[0.97] transition-all"
+              className="ml-auto flex items-center gap-1.5 px-4 py-2 text-sm font-semibold disabled:opacity-40 active:scale-[0.97] transition-all"
+              style={{
+                background: "var(--alm-ink)",
+                color: "var(--alm-cream)",
+                border: "2px solid var(--alm-ink)",
+                borderRadius: 4,
+                boxShadow: (!pwSaving && currentPw && newPw && confirmPw) ? "3px 3px 0 var(--alm-red)" : "none",
+                fontFamily: "var(--font-mono, monospace)",
+                fontSize: 12,
+                letterSpacing: "0.05em",
+                cursor: (pwSaving || !currentPw || !newPw || !confirmPw) ? "not-allowed" : "pointer",
+              }}
             >
               {pwSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
               Update password
@@ -306,9 +376,9 @@ export default function ProfileClient({
       {/* ══ RIGHT COLUMN ══ */}
       <div className="space-y-6">
 
-        {/* ── Maps app ── */}
+        {/* Maps app */}
         <Card icon={<MapPin className="w-4 h-4" />} title="Maps app">
-          <p className="text-xs text-gray-400 dark:text-gray-400 mb-4">
+          <p style={{ fontSize: 13, color: "var(--alm-ink2)", marginBottom: 16 }}>
             Controls which app opens when you tap a Maps button on any trip.
           </p>
           <div className="space-y-2">
@@ -317,33 +387,65 @@ export default function ProfileClient({
                 key={opt.id}
                 type="button"
                 onClick={() => saveMapsPref(opt.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all active:scale-[0.99] ${
-                  mapsPref === opt.id
-                    ? "border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/30 ring-2 ring-blue-100"
-                    : "border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-600"
-                }`}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left transition-all active:scale-[0.99]"
+                style={{
+                  borderRadius: 4,
+                  border: `2px solid ${mapsPref === opt.id ? "var(--alm-ink)" : "var(--alm-rule)"}`,
+                  background: mapsPref === opt.id ? "var(--alm-ink)" : "var(--alm-bg)",
+                  boxShadow: mapsPref === opt.id ? "3px 3px 0 var(--alm-red)" : "none",
+                  cursor: "pointer",
+                }}
               >
                 {/* Radio dot */}
-                <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                  mapsPref === opt.id ? "border-blue-600" : "border-gray-300 dark:border-gray-500"
-                }`}>
+                <span
+                  className="w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
+                  style={{
+                    borderColor: mapsPref === opt.id ? "var(--alm-cream)" : "var(--alm-rule)",
+                  }}
+                >
                   {mapsPref === opt.id && (
-                    <span className="w-2 h-2 rounded-full bg-blue-600" />
+                    <span
+                      className="w-2 h-2 rounded-full"
+                      style={{ background: "var(--alm-red)" }}
+                    />
                   )}
                 </span>
                 <span>
-                  <span className="block text-sm font-semibold text-gray-800 dark:text-gray-100">{opt.label}</span>
-                  <span className="block text-xs text-gray-400 dark:text-gray-400">{opt.sub}</span>
+                  <span
+                    className="block text-sm font-semibold"
+                    style={{ color: mapsPref === opt.id ? "var(--alm-cream)" : "var(--alm-ink)" }}
+                  >
+                    {opt.label}
+                  </span>
+                  <span
+                    className="block text-xs"
+                    style={{
+                      color: mapsPref === opt.id ? "rgba(250,243,231,0.7)" : "var(--alm-ink2)",
+                      fontFamily: "var(--font-mono, monospace)",
+                    }}
+                  >
+                    {opt.sub}
+                  </span>
                 </span>
                 {mapsPref === opt.id && mapsSaving && (
-                  <Loader2 className="w-3.5 h-3.5 text-blue-500 animate-spin ml-auto" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin ml-auto" style={{ color: "var(--alm-red)" }} />
                 )}
               </button>
             ))}
           </div>
           {mapsPref === "waze" && (
-            <p className="mt-3 text-[11px] text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-3 py-2">
-              ⚠️ Waze only supports origin → destination. Intermediate stops will be ignored.
+            <p
+              className="mt-3 px-3 py-2"
+              style={{
+                fontSize: 11,
+                color: "var(--alm-amber)",
+                background: "rgba(192,138,53,0.08)",
+                border: "1px solid rgba(192,138,53,0.3)",
+                borderRadius: 4,
+                fontFamily: "var(--font-mono, monospace)",
+              }}
+            >
+              ⚠ Waze only supports origin → destination. Intermediate stops will be ignored.
             </p>
           )}
           <div className="mt-3">

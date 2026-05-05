@@ -14,6 +14,8 @@ interface Props {
   children: React.ReactNode;
   /** Tailwind classes applied to the outer <button>. */
   className?: string;
+  /** Inline styles applied to the outer <button>. */
+  style?: React.CSSProperties;
   /** Which side the app-picker dropdown opens toward (default: right). */
   pickerAlign?: "left" | "right";
 }
@@ -29,6 +31,7 @@ export default function MapsButton({
   stops,
   children,
   className = "",
+  style,
   pickerAlign = "right",
 }: Props) {
   const [pref, setPref] = useState<MapsPreference>("google");
@@ -69,7 +72,7 @@ export default function MapsButton({
 
   return (
     <div ref={wrapperRef} className="relative">
-      <button type="button" onClick={handleClick} className={className}>
+      <button type="button" onClick={handleClick} className={className} style={style}>
         {children}
       </button>
 

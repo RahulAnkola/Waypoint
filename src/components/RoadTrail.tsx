@@ -198,25 +198,30 @@ export default function RoadTrail({ children, className = "", style }: Props) {
       if (firstAlive > 0) pts.splice(0, firstAlive);
 
       if (pts.length >= 2) {
-        // Pass 1 — soft outer glow under the asphalt
+        const dark = document.documentElement.classList.contains("dark");
+        // Pass 1 — soft outer shadow
         strokeSmoothPath(
           pts,
           now,
-          (a) => `rgba(0, 0, 0, ${a * 0.25})`,
+          (a) => dark
+            ? `rgba(0, 0, 0, ${a * 0.35})`
+            : `rgba(31, 26, 23, ${a * 0.18})`,
           34,
         );
-        // Pass 2 — asphalt body
+        // Pass 2 — road body (ink in light, white in dark)
         strokeSmoothPath(
           pts,
           now,
-          (a) => `rgba(15, 23, 42, ${a * 0.95})`,
+          (a) => dark
+            ? `rgba(255, 255, 255, ${a * 0.85})`
+            : `rgba(31, 26, 23, ${a * 0.88})`,
           22,
         );
-        // Pass 3 — solid yellow center line
+        // Pass 3 — center line (terracotta/orange in both modes)
         strokeSmoothPath(
           pts,
           now,
-          (a) => `rgba(250, 204, 21, ${a})`,
+          (a) => `rgba(194, 91, 58, ${a * 0.95})`,
           3,
         );
       }

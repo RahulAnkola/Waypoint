@@ -24,13 +24,24 @@ export default function ScrollProgress() {
   return (
     <div
       aria-hidden
-      className="fixed top-0 left-0 right-0 z-[100] h-[3px] pointer-events-none"
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
+        height: 2,
+        pointerEvents: "none",
+        background: "var(--alm-rule)",
+      }}
     >
       <div
-        className="h-full bg-gradient-to-r from-blue-500 via-violet-500 to-pink-500 shadow-[0_0_10px_rgba(124,58,237,0.5)]"
         style={{
+          height: "100%",
           width: `${pct}%`,
+          background: "linear-gradient(to right, var(--alm-red), var(--alm-amber))",
           transition: "width 120ms linear",
+          boxShadow: "0 0 6px rgba(194,91,58,0.5)",
         }}
       />
     </div>

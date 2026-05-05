@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Mail } from "lucide-react";
 import ContactModal from "./ContactModal";
 
 export default function DeveloperCard() {
@@ -9,38 +8,146 @@ export default function DeveloperCard() {
 
   return (
     <>
-      <div className="lift bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 shadow-sm hover:shadow-md mb-8">
-        <p className="text-[10px] font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest mb-4">
-          About the Developer
-        </p>
-        <div className="flex items-center gap-4 mb-5">
-          <div className="relative w-14 h-14 shrink-0">
-            <span className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 blur-md opacity-60 animate-pulse-glow" />
-            <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center text-white font-bold text-xl shadow-md">
+      <div
+        style={{
+          background: "var(--alm-bg)",
+          border: "2px solid var(--alm-ink)",
+          borderRadius: 4,
+          display: "grid",
+          gridTemplateColumns: "280px 1fr",
+          overflow: "hidden",
+          boxShadow: "5px 5px 0 var(--alm-ink)",
+        }}
+        className="dev-card-grid"
+      >
+        {/* Left: photo placeholder */}
+        <div
+          style={{
+            padding: 24,
+            borderRight: "2px solid var(--alm-ink)",
+            background: "var(--alm-cream)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              aspectRatio: "1 / 1.1",
+              background: "repeating-linear-gradient(135deg, var(--alm-rule) 0 8px, var(--alm-cream) 8px 16px)",
+              border: "2px solid var(--alm-ink)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              position: "relative",
+            }}
+          >
+            <div
+              className="alm-display"
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: "50%",
+                background: "var(--alm-red)",
+                color: "var(--alm-cream)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 36,
+                border: "2px solid var(--alm-ink)",
+              }}
+            >
               R
             </div>
+            <div style={{ position: "absolute", top: 8, left: 8, fontFamily: "var(--font-mono, monospace)", fontSize: 9, letterSpacing: "0.18em", color: "var(--alm-ink2)" }}>
+              PHOTO · WPT/01
+            </div>
           </div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Rahul Ankola</h2>
-            <p className="text-sm text-gray-500">Full-stack developer &amp; road trip enthusiast</p>
+
+          {/* Metadata dossier */}
+          <div
+            style={{
+              marginTop: 14,
+              width: "100%",
+              fontFamily: "var(--font-mono, monospace)",
+              fontSize: 10,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "var(--alm-ink2)",
+            }}
+          >
+            {[
+              ["Role", "Full-stack dev"],
+              ["Base", "The road"],
+              ["Since", "2026"],
+            ].map(([k, v]) => (
+              <div
+                key={k}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  padding: "5px 0",
+                  borderBottom: "1px dashed var(--alm-rule)",
+                }}
+              >
+                <span>{k}</span>
+                <span style={{ color: "var(--alm-ink)" }}>{v}</span>
+              </div>
+            ))}
           </div>
         </div>
 
-        <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-5">
-          Waypoint started as a personal project to scratch my own itch — I
-          kept bouncing between Google Maps tabs, weather apps, and note pads
-          while planning road trips. I wanted one clean place to plan routes,
-          compare alternatives, check the weather, track progress, and now even
-          chat with an AI that actually knows the road.
-        </p>
-
-        <button
-          onClick={() => setOpen(true)}
-          className="btn-tap inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-sm font-semibold text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 hover:border-blue-300 transition-all"
-        >
-          <Mail className="w-3.5 h-3.5" />
-          Leave a message
-        </button>
+        {/* Right: bio */}
+        <div style={{ padding: 32 }}>
+          <h3
+            className="alm-display"
+            style={{
+              fontSize: "clamp(36px, 5vw, 56px)",
+              margin: "0 0 4px",
+              fontWeight: 400,
+              letterSpacing: "-0.03em",
+              lineHeight: 0.95,
+              color: "var(--alm-ink)",
+            }}
+          >
+            Rahul Ankola
+          </h3>
+          <div
+            style={{
+              fontFamily: "var(--font-mono, monospace)",
+              fontSize: 11,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: "var(--alm-red)",
+              marginBottom: 20,
+            }}
+          >
+            Full-stack developer · road-trip enthusiast
+          </div>
+          <p style={{ fontSize: 15, lineHeight: 1.65, color: "var(--alm-ink2)", marginTop: 0, marginBottom: 20 }}>
+            Waypoint started as a personal project to scratch my own itch — bouncing between Google Maps tabs, weather apps, and notepads while planning road trips. I wanted one clean place to plan routes, compare alternatives, check the weather, track progress, and now even chat with an AI that actually knows the road.
+          </p>
+          <button
+            onClick={() => setOpen(true)}
+            style={{
+              fontFamily: "var(--font-mono, monospace)",
+              fontSize: 11,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              fontWeight: 700,
+              color: "var(--alm-cream)",
+              background: "var(--alm-ink)",
+              border: "2px solid var(--alm-ink)",
+              borderRadius: 3,
+              padding: "8px 18px",
+              cursor: "pointer",
+              boxShadow: "3px 3px 0 var(--alm-red)",
+            }}
+          >
+            ✉ Leave a message
+          </button>
+        </div>
       </div>
 
       <ContactModal open={open} onClose={() => setOpen(false)} />

@@ -40,8 +40,33 @@ function city(address: string, max = 18): string {
   return c.length <= max ? c : c.slice(0, max - 1) + "…";
 }
 
-const STOP_COLORS = ["bg-emerald-500", "bg-violet-500", "bg-amber-500", "bg-cyan-500", "bg-pink-500", "bg-red-500"];
-const STOP_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];
+const STOP_LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"];
+const STOP_BG = ["var(--alm-green)", "var(--alm-amber)", "var(--alm-amber)", "var(--alm-amber)", "var(--alm-amber)", "var(--alm-red)"];
+
+const monoLabel: React.CSSProperties = {
+  fontFamily: "var(--font-mono, monospace)",
+  fontSize: 10,
+  fontWeight: 700,
+  letterSpacing: "0.2em",
+  textTransform: "uppercase",
+  color: "var(--alm-ink2)",
+};
+
+const sideCard: React.CSSProperties = {
+  background: "var(--alm-cream)",
+  border: "2px solid var(--alm-rule)",
+  borderRadius: 4,
+  overflow: "hidden",
+};
+
+const sideCardHeader: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 6,
+  padding: "12px 16px",
+  borderBottom: "1px solid var(--alm-rule)",
+  ...monoLabel,
+};
 
 /* ─── Notes auto-save panel ─── */
 function NotesPanel({ tripId, initial }: { tripId: string; initial: string | null }) {
@@ -51,10 +76,7 @@ function NotesPanel({ tripId, initial }: { tripId: string; initial: string | nul
 
   const persist = async (val: string) => {
     setStatus("saving");
-    await createClient()
-      .from("trips")
-      .update({ notes: val.trim() || null })
-      .eq("id", tripId);
+    await createClient().from("trips").update({ notes: val.trim() || null }).eq("id", tripId);
     setStatus("saved");
     setTimeout(() => setStatus("idle"), 2000);
   };
@@ -70,20 +92,21 @@ function NotesPanel({ tripId, initial }: { tripId: string; initial: string | nul
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between px-4 pt-3.5 pb-2 border-b border-gray-100 dark:border-gray-700">
-        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-          <FileText className="w-3.5 h-3.5" /> Notes
+    <div style={sideCard}>
+      <div style={{ ...sideCardHeader, justifyContent: "space-between" }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <FileText style={{ width: 14, height: 14, color: "var(--alm-red)" }} />
+          Notes · Glove Box
         </span>
-        <span className="text-[10px] font-semibold">
+        <span style={{ fontSize: 10, fontFamily: "var(--font-mono, monospace)" }}>
           {status === "saving" && (
-            <span className="flex items-center gap-1 text-gray-400">
-              <Loader2 className="w-3 h-3 animate-spin" /> Saving…
+            <span style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--alm-ink2)" }}>
+              <Loader2 style={{ width: 12, height: 12 }} className="animate-spin" /> Saving…
             </span>
           )}
           {status === "saved" && (
-            <span className="flex items-center gap-1 text-emerald-500">
-              <CheckCircle2 className="w-3 h-3" /> Saved
+            <span style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--alm-green)" }}>
+              <CheckCircle2 style={{ width: 12, height: 12 }} /> Saved
             </span>
           )}
         </span>
@@ -92,8 +115,20 @@ function NotesPanel({ tripId, initial }: { tripId: string; initial: string | nul
         value={text}
         onChange={handleChange}
         placeholder="Jot down packing reminders, hotel bookings, food stops, anything…"
-        rows={8}
-        className="w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-200 leading-relaxed resize-none bg-transparent outline-none placeholder:text-gray-300"
+        rows={6}
+        style={{
+          width: "100%",
+          padding: "12px 16px",
+          fontSize: 13,
+          lineHeight: 1.6,
+          color: "var(--alm-ink)",
+          background: "transparent",
+          border: "none",
+          outline: "none",
+          resize: "none",
+          fontFamily: "inherit",
+          boxSizing: "border-box",
+        }}
       />
     </div>
   );
@@ -134,59 +169,111 @@ function ChecklistPanel({ tripId, initial }: { tripId: string; initial: Checklis
   const done = items.filter((i) => i.done).length;
 
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between px-4 pt-3.5 pb-2 border-b border-gray-100 dark:border-gray-700">
-        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-          <ListChecks className="w-3.5 h-3.5" /> Packing / Checklist
+    <div style={sideCard}>
+      <div style={{ ...sideCardHeader, justifyContent: "space-between" }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <ListChecks style={{ width: 14, height: 14, color: "var(--alm-red)" }} />
+          Packing / Checklist
         </span>
         {items.length > 0 && (
-          <span className="text-[10px] font-semibold text-gray-400">
-            {done}/{items.length}
-          </span>
+          <span style={{ ...monoLabel, color: "var(--alm-ink2)" }}>{done}/{items.length}</span>
         )}
       </div>
 
-      {/* Items */}
       {items.length > 0 && (
-        <ul className="divide-y divide-gray-50 dark:divide-gray-700 max-h-52 overflow-y-auto">
+        <ul style={{ maxHeight: 200, overflowY: "auto", borderBottom: "1px solid var(--alm-rule)" }}>
           {items.map((item) => (
-            <li key={item.id} className="flex items-center gap-2 px-3 py-2 group">
+            <li
+              key={item.id}
+              className="group"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "8px 12px",
+                borderBottom: "1px solid var(--alm-rule)",
+              }}
+            >
               <button
                 onClick={() => toggleItem(item.id)}
-                className={`shrink-0 transition-colors ${item.done ? "text-emerald-500" : "text-gray-300 hover:text-gray-400"}`}
+                style={{
+                  flexShrink: 0,
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: item.done ? "var(--alm-green)" : "var(--alm-rule)",
+                  padding: 0,
+                  display: "flex",
+                }}
               >
-                {item.done ? <CheckCircle2 className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
+                {item.done ? <CheckCircle2 style={{ width: 16, height: 16 }} /> : <Circle style={{ width: 16, height: 16 }} />}
               </button>
-              <span className={`flex-1 text-sm ${item.done ? "line-through text-gray-400 dark:text-gray-500" : "text-gray-700 dark:text-gray-200"}`}>
+              <span
+                style={{
+                  flex: 1,
+                  fontSize: 13,
+                  color: item.done ? "var(--alm-ink2)" : "var(--alm-ink)",
+                  textDecoration: item.done ? "line-through" : "none",
+                }}
+              >
                 {item.text}
               </span>
               <button
                 onClick={() => deleteItem(item.id)}
-                className="shrink-0 text-gray-200 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                style={{
+                  flexShrink: 0,
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "var(--alm-rule)",
+                  padding: 0,
+                  display: "flex",
+                  opacity: 0,
+                }}
+                className="group-hover:opacity-100"
+                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--alm-red)"; (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--alm-rule)"; (e.currentTarget as HTMLButtonElement).style.opacity = "0"; }}
               >
-                <Trash2 className="w-3.5 h-3.5" />
+                <Trash2 style={{ width: 14, height: 14 }} />
               </button>
             </li>
           ))}
         </ul>
       )}
 
-      {/* Add new */}
-      <div className="flex items-center gap-2 px-3 py-2 border-t border-gray-50 dark:border-gray-700">
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px" }}>
         <input
           ref={inputRef}
           value={newText}
           onChange={(e) => setNewText(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") addItem(); }}
-          placeholder="Add item (e.g. Gas up, Snacks)"
-          className="flex-1 text-sm text-gray-700 dark:text-gray-200 placeholder:text-gray-300 bg-transparent outline-none py-1"
+          placeholder="+ Add item…"
+          style={{
+            flex: 1,
+            fontSize: 13,
+            color: "var(--alm-ink)",
+            background: "transparent",
+            border: "none",
+            outline: "none",
+            fontFamily: "inherit",
+          }}
         />
         <button
           onClick={addItem}
           disabled={!newText.trim()}
-          className="shrink-0 p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 disabled:opacity-30 transition-all"
+          style={{
+            flexShrink: 0,
+            padding: 6,
+            borderRadius: 3,
+            background: "var(--alm-red)",
+            color: "var(--alm-cream)",
+            border: "none",
+            cursor: newText.trim() ? "pointer" : "not-allowed",
+            opacity: newText.trim() ? 1 : 0.3,
+            display: "flex",
+          }}
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Plus style={{ width: 14, height: 14 }} />
         </button>
       </div>
     </div>
@@ -195,7 +282,6 @@ function ChecklistPanel({ tripId, initial }: { tripId: string; initial: Checklis
 
 type Member = { user_id: string; role: string; username: string | null };
 
-/* Fetch display names via RPC (username → email prefix fallback, SECURITY DEFINER) */
 async function fetchProfiles(userIds: string[]): Promise<Member[]> {
   if (userIds.length === 0) return [];
   const { data } = await createClient().rpc("get_user_display_names", { p_user_ids: userIds });
@@ -210,18 +296,14 @@ async function fetchProfiles(userIds: string[]): Promise<Member[]> {
   }));
 }
 
-/* ─── Party popup — reads user_ids directly from the trip, no extra DB call ─── */
 function PartyPopup({ userIds }: { userIds: string[] }) {
   const [open, setOpen] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
   const btnRef = useRef<HTMLButtonElement>(null);
   const popupRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    fetchProfiles(userIds).then(setMembers);
-  }, [userIds.join(",")]);
+  useEffect(() => { fetchProfiles(userIds).then(setMembers); }, [userIds.join(",")]);
 
-  // Close on outside click
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
@@ -237,32 +319,73 @@ function PartyPopup({ userIds }: { userIds: string[] }) {
   if (userIds.length <= 1) return null;
 
   return (
-    <div className="relative inline-block">
+    <div style={{ position: "relative", display: "inline-block" }}>
       <button
         ref={btnRef}
         onClick={() => setOpen((o) => !o)}
-        className="inline-flex items-center gap-1 bg-violet-100 text-violet-600 hover:bg-violet-200 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full transition-colors"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 4,
+          background: "rgba(192,138,53,0.12)",
+          color: "var(--alm-amber)",
+          border: "1px solid var(--alm-amber)",
+          borderRadius: 3,
+          padding: "2px 8px",
+          fontFamily: "var(--font-mono, monospace)",
+          fontSize: 10,
+          fontWeight: 700,
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+          cursor: "pointer",
+        }}
       >
-        <Users className="w-3 h-3" /> Party · {userIds.length}
+        <Users style={{ width: 12, height: 12 }} /> Party · {userIds.length}
       </button>
 
       {open && (
         <div
           ref={popupRef}
-          className="absolute left-0 top-full mt-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl p-3 z-50 animate-fade-in"
+          style={{
+            position: "absolute",
+            left: 0,
+            top: "calc(100% + 8px)",
+            width: 220,
+            background: "var(--alm-cream)",
+            border: "2px solid var(--alm-ink)",
+            borderRadius: 4,
+            boxShadow: "4px 4px 0 var(--alm-red)",
+            padding: 12,
+            zIndex: 50,
+          }}
+          className="animate-fade-in"
         >
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1">
-            <Users className="w-3 h-3" /> Trip party
+          <p style={{ ...monoLabel, marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+            <Users style={{ width: 12, height: 12 }} /> Trip party
           </p>
-          <div className="space-y-2">
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {members.map((m) => (
-              <div key={m.user_id} className="flex items-center gap-2">
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] font-bold ${m.role === "organiser" ? "bg-blue-500" : "bg-violet-400"}`}>
+              <div key={m.user_id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: "50%",
+                    background: m.role === "organiser" ? "var(--alm-red)" : "var(--alm-ink2)",
+                    color: "var(--alm-cream)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    fontFamily: "var(--font-mono, monospace)",
+                  }}
+                >
                   {(m.username ?? "?")[0].toUpperCase()}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-gray-700 dark:text-gray-200 truncate">{m.username ?? "Unknown"}</p>
-                  <p className="text-[10px] text-gray-400 dark:text-gray-400 capitalize">{m.role}</p>
+                <div>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: "var(--alm-ink)" }}>{m.username ?? "Unknown"}</p>
+                  <p style={{ ...monoLabel, fontSize: 9 }}>{m.role}</p>
                 </div>
               </div>
             ))}
@@ -273,7 +396,6 @@ function PartyPopup({ userIds }: { userIds: string[] }) {
   );
 }
 
-/* ─── Share panel (link only, no member list — members shown in PartyPopup) ─── */
 function SharePanel({ trip }: { trip: Trip }) {
   const [shareCode, setShareCode] = useState<string | null>(trip.share_code ?? null);
   const [generating, setGenerating] = useState(false);
@@ -287,7 +409,6 @@ function SharePanel({ trip }: { trip: Trip }) {
     setGenerating(false);
   };
 
-  // joinPath is safe to render on both server and client (no window reference)
   const joinPath = shareCode ? `/trips/join/${shareCode}` : null;
 
   const copyLink = async () => {
@@ -298,31 +419,63 @@ function SharePanel({ trip }: { trip: Trip }) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm overflow-hidden">
-      <div className="flex items-center gap-1.5 px-4 pt-3.5 pb-2 border-b border-gray-100 dark:border-gray-700">
-        <Share2 className="w-3.5 h-3.5 text-gray-400" />
-        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Share trip</span>
+    <div style={sideCard}>
+      <div style={sideCardHeader}>
+        <Share2 style={{ width: 14, height: 14, color: "var(--alm-red)" }} />
+        Share Trip
       </div>
-      <div className="p-4">
+      <div style={{ padding: 16 }}>
         {shareCode && joinPath ? (
-          <div className="space-y-2">
-            <p className="text-xs text-gray-500 dark:text-gray-400">Anyone with this link can join and edit:</p>
-            <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl px-3 py-2">
-              <span className="flex-1 text-xs font-mono text-gray-600 dark:text-gray-300 truncate">{joinPath}</span>
-              <button onClick={copyLink} className="shrink-0 p-1 rounded-lg hover:bg-gray-200 transition-colors">
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-gray-400" />}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <p style={{ fontSize: 12, color: "var(--alm-ink2)" }}>Anyone with this link can join and edit:</p>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                background: "var(--alm-bg)",
+                border: "2px solid var(--alm-rule)",
+                borderRadius: 4,
+                padding: "6px 10px",
+              }}
+            >
+              <span style={{ flex: 1, fontSize: 12, fontFamily: "var(--font-mono, monospace)", color: "var(--alm-ink2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {joinPath}
+              </span>
+              <button
+                onClick={copyLink}
+                style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", color: copied ? "var(--alm-green)" : "var(--alm-ink2)", display: "flex" }}
+              >
+                {copied ? <Check style={{ width: 14, height: 14 }} /> : <Copy style={{ width: 14, height: 14 }} />}
               </button>
             </div>
           </div>
         ) : (
           <div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Generate a link so others can join and edit this trip.</p>
+            <p style={{ fontSize: 12, color: "var(--alm-ink2)", marginBottom: 10 }}>Generate a link so others can join and edit this trip.</p>
             <button
               onClick={generateCode}
               disabled={generating}
-              className="flex items-center gap-1.5 text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100 px-3 py-2 rounded-xl transition-all disabled:opacity-50"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: 11,
+                fontFamily: "var(--font-mono, monospace)",
+                fontWeight: 700,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                background: "var(--alm-ink)",
+                color: "var(--alm-cream)",
+                border: "2px solid var(--alm-ink)",
+                borderRadius: 4,
+                padding: "8px 14px",
+                cursor: generating ? "not-allowed" : "pointer",
+                opacity: generating ? 0.6 : 1,
+                boxShadow: "3px 3px 0 var(--alm-red)",
+              }}
             >
-              {generating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Share2 className="w-3.5 h-3.5" />}
+              {generating ? <Loader2 style={{ width: 14, height: 14 }} className="animate-spin" /> : <Share2 style={{ width: 14, height: 14 }} />}
               {generating ? "Generating…" : "Generate share link"}
             </button>
           </div>
@@ -332,7 +485,6 @@ function SharePanel({ trip }: { trip: Trip }) {
   );
 }
 
-/* ─── Trip-level toll total ─── */
 function TripTollTotal({ stops, legRoutes }: { stops: { lat: number; lng: number }[]; legRoutes: LegRoute[] }) {
   const [total, setTotal] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -354,15 +506,36 @@ function TripTollTotal({ stops, legRoutes }: { stops: { lat: number; lng: number
     return () => { cancelled = true; };
   }, [stops, legRoutes]);
 
-  if (loading) return <span className="inline-block h-7 w-24 bg-gray-100 dark:bg-gray-700 rounded-full animate-pulse" />;
+  if (loading) return (
+    <span
+      className="animate-pulse"
+      style={{
+        display: "inline-block",
+        height: 28,
+        width: 96,
+        background: "var(--alm-rule)",
+        borderRadius: 3,
+      }}
+    />
+  );
   if (total === null) return null;
   return (
-    <span className={`text-sm font-semibold px-3 py-1.5 rounded-full border flex items-center gap-1.5 ${
-      total > 0
-        ? "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800"
-        : "bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-600"
-    }`}>
-      💰 {total > 0 ? `~$${total.toFixed(2)} tolls` : "No tolls"}
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        fontSize: 13,
+        fontWeight: 600,
+        fontFamily: "var(--font-mono, monospace)",
+        padding: "4px 10px",
+        border: `1px solid ${total > 0 ? "var(--alm-amber)" : "var(--alm-rule)"}`,
+        borderRadius: 3,
+        background: total > 0 ? "rgba(192,138,53,0.1)" : "transparent",
+        color: total > 0 ? "var(--alm-amber)" : "var(--alm-ink2)",
+      }}
+    >
+      {total > 0 ? `~$${total.toFixed(2)} tolls` : "No tolls"}
     </span>
   );
 }
@@ -387,7 +560,6 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
   const userIds: string[] = trip.user_ids ?? [];
   const isOwner = !!currentUserId && userIds[0] === currentUserId;
 
-  /* cumulative arrival times */
   const stopTimes: string[] = [];
   if (depTime) {
     let cur = depTime;
@@ -395,14 +567,12 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
     legRoutes.forEach(leg => { cur = addSeconds(cur, leg.durationSeconds); stopTimes.push(cur); });
   }
 
-  /* calendar date for each stop (accounting for overnight drives) */
   const stopDates: (string | undefined)[] = stops.map((_, i) => {
     if (!depDate || !depTime) return undefined;
     const elapsed = legRoutes.slice(0, i).reduce((a, l) => a + l.durationSeconds, 0);
     return computeStopDate(depDate, depTime, elapsed);
   });
 
-  /* totals */
   const totalSeconds = legRoutes.reduce((a, l) => a + l.durationSeconds, 0);
   const totalMilesRaw = legRoutes.reduce((a, l) => a + parseFloat(l.distance), 0);
   const totalDistStr = distanceUnit === "km"
@@ -411,7 +581,6 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
   const totalH = Math.floor(totalSeconds / 3600);
   const totalM = Math.round((totalSeconds % 3600) / 60);
 
-  /* per-leg completion */
   const [doneLegs, setDoneLegs] = useState<boolean[]>(() => Array(legCount).fill(trip.completed));
 
   useEffect(() => {
@@ -440,7 +609,6 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
   const doneLegCount = doneLegs.filter(Boolean).length;
   const pct = legCount > 0 ? Math.round((doneLegCount / legCount) * 100) : 0;
 
-  /* sync completion to DB when progress hits 0% or 100% */
   useEffect(() => {
     if (legCount <= 0) return;
     const nextCompleted = pct === 100;
@@ -455,111 +623,221 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
   }, [pct, legCount, isCompleted, trip.id]);
 
   const hasMultipleLegs = stops.length > 2;
-  const barColor = pct === 100 ? "bg-emerald-500" : pct >= 50 ? "bg-blue-500" : "bg-amber-400";
-  const pctPill  = pct === 100
-    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-    : pct > 0
-    ? "bg-blue-50 text-blue-700 border-blue-200"
-    : "bg-gray-50 text-gray-500 border-gray-200";
+  const barPct = pct;
+  const barColor = pct === 100 ? "var(--alm-green)" : pct >= 50 ? "var(--alm-red)" : "var(--alm-amber)";
 
   return (
     <>
-      {/* ── Header (full width) ── */}
-      <div className="flex items-start justify-between gap-4 mb-6">
-        <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white leading-tight">{trip.name}</h1>
-            <PartyPopup userIds={trip.user_ids ?? []} />
-          </div>
-          <p className="text-sm text-gray-400 dark:text-gray-400 mt-1">
-            {trip.departure_date
-              ? formatDate(trip.departure_date + "T12:00:00")
-              : formatDate(trip.created_at)}
-          </p>
+      {/* ── Masthead ── */}
+      <div
+        style={{
+          paddingBottom: 28,
+          borderBottom: "2px solid var(--alm-ink)",
+          marginBottom: 32,
+        }}
+      >
+        <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 10, letterSpacing: "0.3em", color: "var(--alm-red)", textTransform: "uppercase", marginBottom: 8 }}>
+          ★ Trip log ★
         </div>
-        {isCompleted && (
-          <span className="flex items-center gap-1.5 bg-emerald-50 text-emerald-600 text-xs font-bold px-3 py-1.5 rounded-full border border-emerald-200 shrink-0 mt-1">
-            <CheckCircle2 className="w-3.5 h-3.5" /> Completed
-          </span>
-        )}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <h1 className="alm-display" style={{ fontSize: "clamp(40px, 7vw, 72px)", lineHeight: 0.9, fontWeight: 400, letterSpacing: "-0.03em", margin: 0, color: "var(--alm-ink)" }}>
+                {trip.name}
+              </h1>
+              <PartyPopup userIds={trip.user_ids ?? []} />
+            </div>
+            <p style={{ ...monoLabel, marginTop: 8, fontSize: 11 }}>
+              {trip.departure_date
+                ? formatDate(trip.departure_date + "T12:00:00")
+                : formatDate(trip.created_at)}
+            </p>
+          </div>
+          {isCompleted && (
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                background: "rgba(74,124,89,0.1)",
+                color: "var(--alm-green)",
+                border: "2px solid var(--alm-green)",
+                borderRadius: 3,
+                padding: "6px 12px",
+                fontFamily: "var(--font-mono, monospace)",
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                flexShrink: 0,
+                marginTop: 4,
+              }}
+            >
+              <CheckCircle2 style={{ width: 14, height: 14 }} /> Completed
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* ── Summary pills (full width) ── */}
+      {/* ── Summary strip ── */}
       {legRoutes.length > 0 && (
-        <>
-          <div className="flex gap-2 flex-wrap mb-2">
-            <span className="bg-blue-50 text-blue-700 text-sm font-semibold px-3 py-1.5 rounded-full border border-blue-100">
-              {totalH > 0 ? `${totalH}h ${totalM}m` : `${totalM}m`} drive
-            </span>
-            <span className="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-semibold px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-600">
-              {totalDistStr} total
-            </span>
-            {stops.length > 1 && (
-              <span className="bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-semibold px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-600">
-                {stops.length} stops · {legCount} leg{legCount > 1 ? "s" : ""}
-              </span>
-            )}
-            {depTime && stopTimes.length > 0 && (
-              <span className="bg-indigo-50 text-indigo-700 text-sm font-semibold px-3 py-1.5 rounded-full border border-indigo-100 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5" />
-                {formatTime12(depTime)} → {formatTime12(stopTimes[stopTimes.length - 1])}
-              </span>
-            )}
-            <TripTollTotal stops={stops} legRoutes={legRoutes} />
+        <div style={{ marginBottom: 32 }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(5, 1fr)",
+              border: "2px solid var(--alm-ink)",
+              background: "var(--alm-cream)",
+              marginBottom: 8,
+            }}
+            className="trips-stats"
+          >
+            {[
+              ["DRIVE TIME", totalH > 0 ? `${totalH}h ${totalM}m` : `${totalM}m`, "var(--alm-ink)"],
+              ["DISTANCE", totalDistStr, "var(--alm-ink)"],
+              ["STOPS", `${stops.length} · ${legCount} leg${legCount !== 1 ? "s" : ""}`, "var(--alm-ink)"],
+              depTime && stopTimes.length > 0 ? ["SCHEDULE", `${formatTime12(depTime)} → ${formatTime12(stopTimes[stopTimes.length - 1])}`, "var(--alm-blue)"] : null,
+              ["TOLLS", null, "var(--alm-amber)"],
+            ].filter(Boolean).map((item, i, arr) => {
+              const [label, val, color] = item as [string, string | null, string];
+              return (
+                <div
+                  key={label}
+                  style={{
+                    padding: "14px 16px",
+                    borderRight: i < arr.length - 1 ? "2px solid var(--alm-ink)" : "none",
+                  }}
+                >
+                  <div style={{ ...monoLabel, fontSize: 9, marginBottom: 4 }}>{label}</div>
+                  <div className="alm-display" style={{ fontSize: 22, lineHeight: 1, color, letterSpacing: "-0.01em" }}>
+                    {label === "TOLLS" ? <TripTollTotal stops={stops} legRoutes={legRoutes} /> : val}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-5">
+          <p style={{ fontSize: 11, color: "var(--alm-ink2)", fontStyle: "italic" }}>
             Toll estimates are approximate and may vary. Actual tolls depend on vehicle class and payment method.
           </p>
-        </>
+        </div>
       )}
 
-      {/* ── Two-column grid on large screens ── */}
+      {/* ── Progress bar ── */}
+      {legCount > 0 && (
+        <div
+          style={{
+            background: "var(--alm-cream)",
+            border: "2px solid var(--alm-rule)",
+            borderRadius: 4,
+            padding: "12px 16px",
+            marginBottom: 28,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <span style={monoLabel}>Trip Progress</span>
+            <span style={{ ...monoLabel, color: pct === 100 ? "var(--alm-green)" : pct > 0 ? "var(--alm-red)" : "var(--alm-ink2)" }}>
+              {doneLegCount} / {legCount} Legs · {pct}%
+            </span>
+          </div>
+          <div style={{ height: 6, background: "var(--alm-rule)", borderRadius: 2, overflow: "hidden" }}>
+            <div
+              style={{
+                height: "100%",
+                width: `${barPct}%`,
+                background: barColor,
+                transition: "width 500ms ease",
+                borderRadius: 2,
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* ── Two-column layout ── */}
       <div className="lg:grid lg:grid-cols-[1fr_360px] lg:gap-8 lg:items-start">
 
-        {/* ══ LEFT: timeline ══ */}
+        {/* ══ LEFT: itinerary ══ */}
         <div>
-          {/* Progress bar */}
-          {legCount > 0 && (
-            <div className="mb-7 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl px-4 py-3.5 shadow-sm">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Trip progress</span>
-                <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${pctPill}`}>
-                  {doneLegCount} / {legCount} legs · {pct}%
-                </span>
-              </div>
-              <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${barColor}`}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
+          <div
+            style={{
+              background: "var(--alm-cream)",
+              border: "2px solid var(--alm-ink)",
+              borderRadius: 4,
+              overflow: "hidden",
+              boxShadow: "4px 4px 0 var(--alm-ink)",
+            }}
+          >
+            <div
+              style={{
+                padding: "16px 20px",
+                borderBottom: "2px solid var(--alm-ink)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <h2 className="alm-display" style={{ fontSize: 28, fontWeight: 400, margin: 0, color: "var(--alm-ink)" }}>
+                The Itinerary
+              </h2>
+              <span style={monoLabel}>§ {stops.length} stops · {legCount} legs</span>
             </div>
-          )}
 
-          {/* Itinerary timeline */}
-          <div className="relative">
-            <div className="absolute left-5 top-6 bottom-6 w-0.5 bg-gradient-to-b from-emerald-300 via-violet-300 to-red-300" />
-            <div className="space-y-0">
+            <div style={{ padding: "8px 20px 20px" }}>
               {stops.map((stop, i) => {
-                const isLast  = i === stops.length - 1;
-                const leg     = legRoutes.find(l => l.legIndex === i);
+                const isLast = i === stops.length - 1;
+                const leg = legRoutes.find(l => l.legIndex === i);
                 const arrTime = stopTimes[i];
-                const color   = STOP_COLORS[Math.min(i, STOP_COLORS.length - 1)];
                 const legDone = !isLast && (doneLegs[i] ?? false);
+                const stopColor = STOP_BG[Math.min(i === stops.length - 1 ? STOP_BG.length - 1 : i, STOP_BG.length - 1)];
 
                 return (
-                  <div key={i}>
+                  <div key={i} style={{ position: "relative" }}>
+                    {/* Connector line */}
+                    {!isLast && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          left: 18,
+                          top: 44,
+                          bottom: 0,
+                          width: 2,
+                          background: "var(--alm-rule)",
+                        }}
+                      />
+                    )}
+
                     {/* Stop row */}
-                    <div className="flex gap-4 items-start">
-                      <div className={`w-10 h-10 rounded-full ${color} flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-md border-2 border-white z-10 relative`}>
-                        {STOP_LABELS[i] ?? i + 1}
+                    <div style={{ display: "flex", gap: 14, paddingTop: 20 }}>
+                      <div
+                        style={{
+                          width: 38,
+                          height: 38,
+                          borderRadius: "50%",
+                          background: stopColor,
+                          color: "var(--alm-cream)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontFamily: "var(--font-mono, monospace)",
+                          fontSize: 13,
+                          fontWeight: 700,
+                          flexShrink: 0,
+                          border: "2px solid var(--alm-ink)",
+                          boxShadow: "2px 2px 0 var(--alm-ink)",
+                          zIndex: 1,
+                          position: "relative",
+                        }}
+                      >
+                        {STOP_LETTERS[i] ?? String(i + 1)}
                       </div>
-                      <div className="flex-1 pb-6 pt-1.5 min-w-0">
-                        <p className="font-semibold text-gray-900 dark:text-white text-base leading-snug">{stop.address}</p>
+                      <div style={{ flex: 1, paddingBottom: leg ? 0 : 16, minWidth: 0 }}>
+                        <p style={{ fontSize: 15, fontWeight: 600, color: "var(--alm-ink)", margin: 0, lineHeight: 1.3 }}>
+                          {stop.address}
+                        </p>
                         {arrTime && (
-                          <div className="flex items-center gap-1.5 mt-1">
-                            <Clock className="w-3 h-3 text-gray-400" />
-                            <span className="text-xs text-gray-500">
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
+                            <Clock style={{ width: 12, height: 12, color: "var(--alm-ink2)", flexShrink: 0 }} />
+                            <span style={{ fontSize: 12, color: "var(--alm-ink2)", fontFamily: "var(--font-mono, monospace)" }}>
                               {i === 0 ? "Depart" : "Arrive"} {formatTime12(arrTime)}
                             </span>
                           </div>
@@ -570,30 +848,40 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
 
                     {/* Leg connector */}
                     {!isLast && leg && (
-                      <div className="ml-[52px] mb-2 -mt-3 relative z-10">
-                        <div className={`border rounded-2xl px-3 py-2.5 shadow-sm transition-colors ${
-                          legDone ? "bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800" : "bg-white dark:bg-gray-700 border-gray-100 dark:border-gray-600"
-                        }`}>
-                          <div className="flex items-center gap-2">
+                      <div style={{ marginLeft: 52, marginTop: 8, marginBottom: 4 }}>
+                        <div
+                          style={{
+                            border: `2px solid ${legDone ? "var(--alm-green)" : "var(--alm-rule)"}`,
+                            borderRadius: 4,
+                            padding: "10px 12px",
+                            background: legDone ? "rgba(74,124,89,0.06)" : "var(--alm-bg)",
+                            transition: "border-color 200ms",
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                             <button
                               onClick={() => toggleLeg(i)}
                               title={legDone ? "Unmark leg" : "Mark leg done"}
-                              className={`shrink-0 transition-all hover:scale-110 active:scale-95 ${
-                                legDone ? "text-emerald-500" : "text-gray-300 hover:text-gray-400"
-                              }`}
+                              style={{
+                                flexShrink: 0,
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                color: legDone ? "var(--alm-green)" : "var(--alm-rule)",
+                                padding: 0,
+                                display: "flex",
+                                transition: "color 150ms",
+                              }}
                             >
-                              {legDone
-                                ? <CheckCircle2 className="w-5 h-5" />
-                                : <Circle className="w-5 h-5" />
-                              }
+                              {legDone ? <CheckCircle2 style={{ width: 20, height: 20 }} /> : <Circle style={{ width: 20, height: 20 }} />}
                             </button>
-                            <div className="flex items-start gap-1.5 flex-1 min-w-0">
-                              <Route className="w-3.5 h-3.5 text-blue-500 mt-0.5 shrink-0" />
-                              <div className="min-w-0">
-                                <p className={`text-sm font-semibold truncate ${legDone ? "text-emerald-700" : "text-gray-800 dark:text-gray-100"}`}>
+                            <div style={{ display: "flex", alignItems: "flex-start", gap: 6, flex: 1, minWidth: 0 }}>
+                              <Route style={{ width: 14, height: 14, color: "var(--alm-red)", marginTop: 2, flexShrink: 0 }} />
+                              <div style={{ minWidth: 0 }}>
+                                <p style={{ fontSize: 13, fontWeight: 600, color: legDone ? "var(--alm-green)" : "var(--alm-ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                   via {leg.summary}
                                 </p>
-                                <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                                <p style={{ fontSize: 12, color: "var(--alm-ink2)", marginTop: 2, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                                   <span>{formatStoredDistance(leg.distance, distanceUnit)} · {leg.duration}</span>
                                   <TollBadge
                                     originLat={stop.lat} originLng={stop.lng}
@@ -606,9 +894,25 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
                             </div>
                             <MapsButton
                               stops={[stop, stops[i + 1]]}
-                              className="shrink-0 flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg transition-colors"
+                              style={{
+                                flexShrink: 0,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 4,
+                                fontSize: 10,
+                                fontFamily: "var(--font-mono, monospace)",
+                                fontWeight: 700,
+                                letterSpacing: "0.1em",
+                                textTransform: "uppercase",
+                                background: "var(--alm-ink)",
+                                color: "var(--alm-cream)",
+                                border: "2px solid var(--alm-ink)",
+                                borderRadius: 3,
+                                padding: "5px 10px",
+                                cursor: "pointer",
+                              }}
                             >
-                              <ExternalLink className="w-3 h-3" /> Maps
+                              <ExternalLink style={{ width: 12, height: 12 }} /> Maps
                             </MapsButton>
                           </div>
                         </div>
@@ -616,8 +920,17 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
                     )}
 
                     {!isLast && !leg && (
-                      <div className="ml-[52px] mb-2 -mt-3">
-                        <div className="border border-dashed border-gray-200 dark:border-gray-600 rounded-xl px-4 py-2.5 text-xs text-gray-400 dark:text-gray-500">
+                      <div style={{ marginLeft: 52, marginTop: 8, marginBottom: 4 }}>
+                        <div
+                          style={{
+                            border: "2px dashed var(--alm-rule)",
+                            borderRadius: 4,
+                            padding: "10px 14px",
+                            fontSize: 12,
+                            color: "var(--alm-ink2)",
+                            fontStyle: "italic",
+                          }}
+                        >
                           Route not selected — open in planner to choose
                         </div>
                       </div>
@@ -630,73 +943,125 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
         </div>
 
         {/* ══ RIGHT: sidebar ══ */}
-        <div className="mt-8 lg:mt-0 space-y-5 lg:sticky lg:top-24">
+        <div className="mt-8 lg:mt-0 lg:sticky lg:top-24" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
           {/* Edit in Planner */}
           <Link
             href={`/planner?trip=${trip.id}`}
-            className="flex items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 py-3 rounded-xl font-semibold text-sm hover:bg-blue-100 dark:hover:bg-blue-900/50 active:scale-[0.98] transition-all border border-blue-100 dark:border-blue-800"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              background: "var(--alm-red)",
+              color: "var(--alm-cream)",
+              border: "2px solid var(--alm-ink)",
+              borderRadius: 4,
+              padding: "12px",
+              fontFamily: "var(--font-mono, monospace)",
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              textDecoration: "none",
+              boxShadow: "4px 4px 0 var(--alm-ink)",
+              transition: "opacity 150ms",
+            }}
           >
-            <MapPin className="w-4 h-4" />
-            Edit in Planner
+            <MapPin style={{ width: 14, height: 14 }} />
+            ✎ Edit in Planner
           </Link>
 
           {/* Maps section */}
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm p-4">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-              <Map className="w-3.5 h-3.5" /> Open in Maps
-            </p>
-
-            {/* Full route */}
-            <MapsButton
-              stops={stops}
-              pickerAlign="left"
-              className="flex items-center justify-between w-full bg-gray-900 text-white px-4 py-3 rounded-xl text-sm font-semibold hover:bg-gray-800 active:scale-[0.98] transition-all mb-2"
-            >
-              <span className="flex items-center gap-2 min-w-0">
-                <ExternalLink className="w-4 h-4 shrink-0" />
-                <span className="truncate">
+          <div style={sideCard}>
+            <div style={sideCardHeader}>
+              <Map style={{ width: 14, height: 14, color: "var(--alm-red)" }} />
+              Open in Maps
+            </div>
+            <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 6 }}>
+              <MapsButton
+                stops={stops}
+                pickerAlign="left"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  background: "var(--alm-ink)",
+                  color: "var(--alm-cream)",
+                  border: "2px solid var(--alm-ink)",
+                  borderRadius: 4,
+                  padding: "10px 14px",
+                  fontSize: 12,
+                  fontFamily: "var(--font-mono, monospace)",
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  cursor: "pointer",
+                  boxShadow: "3px 3px 0 var(--alm-red)",
+                }}
+              >
+                <span style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <ExternalLink style={{ width: 14, height: 14, flexShrink: 0 }} />
                   Full route{" "}
-                  <span className="opacity-60 font-normal">
+                  <span style={{ opacity: 0.6, fontWeight: 400 }}>
                     {city(stops[0].address)} → {city(stops[stops.length - 1].address)}
                   </span>
                 </span>
-              </span>
-              <span className="text-xs text-gray-400 shrink-0 ml-2">{stops.length} stops</span>
-            </MapsButton>
+                <span style={{ fontSize: 10, opacity: 0.6, flexShrink: 0, marginLeft: 8 }}>{stops.length} stops</span>
+              </MapsButton>
 
-            {/* Per-leg list */}
-            {hasMultipleLegs && (
-              <div className="flex flex-col gap-1.5 mt-2">
-                {stops.slice(0, -1).map((stop, i) => (
-                  <MapsButton
-                    key={i}
-                    stops={[stop, stops[i + 1]]}
-                    className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-xs font-semibold bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-blue-300 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/30 active:scale-[0.98] transition-all"
-                  >
-                    <ExternalLink className="w-3 h-3 shrink-0" />
-                    <span className="truncate">{city(stop.address, 16)} → {city(stops[i + 1].address, 16)}</span>
-                  </MapsButton>
-                ))}
-              </div>
-            )}
+              {hasMultipleLegs && stops.slice(0, -1).map((stop, i) => (
+                <MapsButton
+                  key={i}
+                  stops={[stop, stops[i + 1]]}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    width: "100%",
+                    background: "var(--alm-bg)",
+                    color: "var(--alm-ink)",
+                    border: "2px solid var(--alm-rule)",
+                    borderRadius: 4,
+                    padding: "7px 12px",
+                    fontSize: 11,
+                    fontFamily: "var(--font-mono, monospace)",
+                    cursor: "pointer",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <ExternalLink style={{ width: 12, height: 12, flexShrink: 0 }} />
+                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    ↗ {city(stop.address, 16)} → {city(stops[i + 1].address, 16)}
+                  </span>
+                  <span style={{ marginLeft: "auto", flexShrink: 0, color: "var(--alm-red)" }}>open</span>
+                </MapsButton>
+              ))}
+            </div>
           </div>
 
-          {/* Notes */}
           <NotesPanel tripId={trip.id} initial={trip.notes ?? null} />
-
-          {/* Checklist */}
           <ChecklistPanel tripId={trip.id} initial={trip.checklist ?? null} />
-
-          {/* Share — organiser only */}
           {isOwner && <SharePanel trip={trip} />}
 
-          {/* Back link — only visible in the sidebar on desktop */}
           <Link
             href="/trips"
-            className="hidden lg:flex items-center gap-1.5 text-xs text-gray-400 hover:text-blue-600 transition-colors"
+            style={{
+              display: "none",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 11,
+              fontFamily: "var(--font-mono, monospace)",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "var(--alm-ink2)",
+              textDecoration: "none",
+            }}
+            className="lg:flex"
           >
-            <ChevronRight className="w-3.5 h-3.5 rotate-180" />
+            <ChevronRight style={{ width: 14, height: 14, transform: "rotate(180deg)" }} />
             Back to My Trips
           </Link>
         </div>

@@ -1,23 +1,19 @@
 import Link from "next/link";
-import {
-  MapPin,
-  Route,
-  BookMarked,
-  ExternalLink,
-  ArrowRight,
-  Sparkles,
-  Compass,
-  Navigation,
-  Search,
-  CheckCircle2,
-  MessageCircle,
-} from "lucide-react";
-import ScrollReveal from "@/components/ScrollReveal";
-import AnimatedHeading from "@/components/AnimatedHeading";
 import RoadTrail from "@/components/RoadTrail";
 import HomePageCarCursor from "@/components/HomePageCarCursor";
-import HomeFooter from "@/components/HomeFooter";
+import AlmRotatingQuote from "@/components/AlmRotatingQuote";
+import HeroRotatingHeadline from "@/components/HeroRotatingHeadline";
 import { createClient } from "@/lib/supabase/server";
+
+const ALM_QUOTES = [
+  { text: <>Plan the scenic route, <em style={{ color: "var(--alm-red)", fontStyle: "normal" }}>not just</em> the fastest route.</> },
+  { text: <>The road trip planner that respects <em style={{ color: "var(--alm-red)", fontStyle: "normal" }}>the detour.</em></> },
+  { text: "Finally, a planner that gets out of your way. Mapped a 10-stop trip in under 20 minutes.", name: "Priya M.", origin: "Salt Lake City → Denver" },
+  { text: "The AI suggested this tiny diner off-route that became the highlight of the whole trip.", name: "Jordan C.", origin: "Austin → New Orleans" },
+  { text: "Planned the whole Pacific Coast run with it. Weather, tolls, alternatives — everything in one place.", name: "Sofía R.", origin: "LA → Portland" },
+  { text: "Share link worked perfectly. My whole family was editing stops from their phones the night before.", name: "Marcus T.", origin: "Nashville → Asheville" },
+  { text: "Simple. Fast. No fluff. I've tried every road-trip app and this is the one I keep coming back to.", name: "Ellie K.", origin: "Chicago → Upper Peninsula" },
+];
 
 export default async function Home() {
   const supabase = await createClient();
@@ -28,442 +24,408 @@ export default async function Home() {
 
   return (
     <HomePageCarCursor>
-    <div className="overflow-x-hidden">
-      {/* ───────── Hero ───────── */}
-      <RoadTrail
-        className="relative overflow-hidden text-white"
-        style={{
-          isolation: "isolate",
-          backgroundColor: "#0f172a",
-        }}
-      >
-        {/* Solid gradient base — inline style guarantees it always renders */}
-        <div
-          aria-hidden
-          className="absolute"
+      <div style={{ background: "var(--alm-bg)", color: "var(--alm-ink)" }}>
+
+        {/* ── HERO with RoadTrail ── */}
+        <RoadTrail
+          className="relative overflow-hidden road-trail-zone"
           style={{
-            top: 0,
-            right: 0,
-            bottom: 0,
-            left: 0,
-            background:
-              "linear-gradient(135deg, #1e3a8a 0%, #312e81 45%, #0f172a 100%)",
+            background: "var(--alm-bg)",
+            borderBottom: "2px solid var(--alm-ink)",
+            isolation: "isolate",
           }}
-        />
-
-        {/* Drifting blobs */}
-        <div
-          aria-hidden
-          className="absolute inset-0 overflow-hidden pointer-events-none"
         >
-          <div className="absolute -top-40 -left-32 w-[28rem] h-[28rem] rounded-full bg-cyan-400 mix-blend-screen blur-3xl opacity-50 animate-blob" />
-          <div className="absolute top-10 -right-32 w-[32rem] h-[32rem] rounded-full bg-violet-500 mix-blend-screen blur-3xl opacity-50 animate-blob-2" />
-          <div className="absolute bottom-0 left-1/3 w-[26rem] h-[26rem] rounded-full bg-pink-500 mix-blend-screen blur-3xl opacity-40 animate-blob-3" />
-        </div>
-
-        {/* Subtle dotted overlay */}
-        <div
-          aria-hidden
-          className="absolute inset-0 opacity-[0.10] text-white dot-grid-bg pointer-events-none"
-        />
-
-        <div
-          className="relative max-w-5xl mx-auto px-4 py-24 sm:py-32 text-center"
-          style={{ zIndex: 10 }}
-        >
-          {/* Status pill */}
-          <div
-            className="inline-flex items-center gap-2 mb-7 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-xs font-semibold tracking-wide animate-fade-in"
-            style={{ animationDelay: "100ms" }}
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
-            </span>
-            <span className="text-white/90">100% Free · No credit card</span>
-          </div>
-
-          {/* Floating logo */}
-          <div className="flex justify-center mb-7">
-            <div className="relative inline-flex items-center justify-center animate-float">
-              <span className="absolute inset-0 rounded-3xl bg-white/30 blur-2xl animate-pulse-glow" />
-              <span className="relative grid place-items-center w-20 h-20 rounded-3xl bg-white/10 backdrop-blur-md border border-white/20 shadow-xl">
-                <MapPin className="w-10 h-10 text-white drop-shadow" />
-              </span>
-            </div>
-          </div>
-
-          {/* Headline */}
-          <AnimatedHeading
-            text="Plan your perfect"
-            gradientText="road trip."
-            className="text-5xl sm:text-7xl font-black leading-[1.05] tracking-tight mb-6"
-          />
-
-          <p
-            className="text-lg sm:text-xl text-blue-100/90 max-w-2xl mx-auto leading-relaxed animate-fade-in"
-            style={{ animationDelay: "560ms" }}
-          >
-            Build multi-stop routes, compare alternatives, and let an AI trip
-            companion suggest stops, food, and sights — powered by Google Maps,
-            free for everyone.
-          </p>
-
-          {/* AI badge */}
-          <div
-            className="inline-flex items-center gap-2 mt-6 px-4 py-2 rounded-full bg-violet-500/20 border border-violet-400/30 text-violet-200 text-sm font-semibold animate-fade-in"
-            style={{ animationDelay: "800ms" }}
-          >
-            <Sparkles className="w-4 h-4 text-violet-300" />
-            AI trip assistant built-in — asks questions, suggests real stops
-          </div>
-
-          {/* CTAs */}
-          <div
-            className="flex flex-col sm:flex-row gap-3 justify-center mt-10 animate-fade-in"
-            style={{ animationDelay: "720ms" }}
-          >
-            <Link
-              href="/planner"
-              className="btn-shine btn-tap group inline-flex items-center justify-center gap-2 bg-white text-blue-700 px-8 py-4 rounded-2xl font-bold text-lg shadow-xl shadow-blue-950/30 hover:shadow-2xl hover:shadow-blue-950/40 hover:-translate-y-0.5 transition-all"
-            >
-              <Sparkles className="w-5 h-5 text-amber-500" />
-              Start Planning
-              <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
-            </Link>
-            {isLoggedIn ? (
-              <Link
-                href="/trips"
-                className="btn-tap inline-flex items-center justify-center gap-2 border-2 border-white/30 backdrop-blur-md text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white/10 hover:border-white/60 transition-all"
-              >
-                <BookMarked className="w-5 h-5" />
-                My Trips
-              </Link>
-            ) : (
-              <Link
-                href="/auth/signup"
-                className="btn-tap inline-flex items-center justify-center gap-2 border-2 border-white/30 backdrop-blur-md text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white/10 hover:border-white/60 transition-all"
-              >
-                Sign up Free
-              </Link>
-            )}
-          </div>
-        </div>
-
-        {/* Bottom fade into next section */}
-        <div
-          aria-hidden
-          className="absolute bottom-0 left-0 right-0 h-20 pointer-events-none hero-bottom-fade"
-          style={{ zIndex: 6 }}
-        />
-      </RoadTrail>
-
-      {/* ───────── Stats / trust strip ───────── */}
-      <section className="relative bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800">
-        <div className="max-w-5xl mx-auto px-4 py-8">
-          <ScrollReveal variant="up">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 text-center">
-              <Stat label="ads" value="Zero" />
-              <Stat label="Stops per trip" value="Unlimited" />
-              <Stat label="Setup time" value="< 60s" />
-              <Stat label="Cost" value="100% Free" />
-            </div>
-          </ScrollReveal>
-        </div>
-      </section>
-
-      {/* ───────── Features · How it works · CTA — one seamless dark band ───────── */}
-      <section
-        className="relative overflow-hidden text-white"
-        style={{
-          isolation: "isolate",
-          backgroundColor: "#0f172a",
-          backgroundImage:
-            "linear-gradient(180deg, #0f172a 0%, #0d1424 40%, #111827 70%, #0f172a 100%)",
-        }}
-      >
-        {/* Single dot-grid across the whole band */}
-        <div
-          aria-hidden
-          className="absolute inset-0 opacity-[0.07] dot-grid-bg text-white pointer-events-none"
-        />
-
-        {/* Ambient blobs staggered vertically — one glow per "zone" */}
-        <div aria-hidden className="absolute top-[5%]  right-[10%] w-[32rem] h-[32rem] rounded-full bg-violet-600 blur-3xl opacity-[0.12] pointer-events-none animate-blob" />
-        <div aria-hidden className="absolute top-[30%] left-[5%]  w-[28rem] h-[28rem] rounded-full bg-cyan-600   blur-3xl opacity-[0.10] pointer-events-none animate-blob-2" />
-        <div aria-hidden className="absolute top-[58%] left-1/2  -translate-x-1/2 w-[40rem] h-[40rem] rounded-full bg-blue-600 blur-3xl opacity-[0.14] pointer-events-none" />
-        <div aria-hidden className="absolute top-[82%] right-[8%] w-[26rem] h-[26rem] rounded-full bg-indigo-500 blur-3xl opacity-[0.12] pointer-events-none animate-blob-3" />
-
-        {/* ── Features ── */}
-        <div className="relative max-w-6xl mx-auto px-4 pt-24 pb-20">
-          <ScrollReveal variant="up">
-            <div className="text-center mb-14">
-              <span className="inline-block text-[11px] font-bold uppercase tracking-[0.25em] text-blue-400 mb-3">
-                Features
-              </span>
-              <h2 className="text-4xl sm:text-5xl font-black tracking-tight">
-                Everything you need
-                <br />
-                <span className="text-gradient-animated">for the perfect trip</span>
-              </h2>
-              <p className="text-white/60 max-w-xl mx-auto mt-5">
-                Designed to feel as smooth as the road ahead — no clutter, no
-                friction, just the stuff that helps you actually leave.
-              </p>
-            </div>
-          </ScrollReveal>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {FEATURES.map((f, i) => (
-              <ScrollReveal key={f.title} variant="up" delay={i * 120}>
-                <FeatureCard {...f} />
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-
-        {/* Thin divider */}
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="border-t border-white/[0.07]" />
-        </div>
-
-        {/* ── How it works ── */}
-        <div className="relative max-w-5xl mx-auto px-4 py-20">
-          <ScrollReveal variant="up">
-            <div className="text-center mb-16">
-              <span className="inline-block text-[11px] font-bold uppercase tracking-[0.25em] text-blue-400 mb-3">
-                How it works
-              </span>
-              <h2 className="text-4xl sm:text-5xl font-black tracking-tight">
-                Three steps to{" "}
-                <span className="text-gradient-animated">the open road</span>
-              </h2>
-            </div>
-          </ScrollReveal>
-
-          <div className="grid md:grid-cols-3 gap-6 relative">
+          <div style={{ position: "relative", zIndex: 10 }}>
             <div
-              aria-hidden
-              className="hidden md:block absolute top-12 left-[16%] right-[16%] h-px border-t-2 border-dashed border-white/10"
-            />
-            {STEPS.map((s, i) => (
-              <ScrollReveal key={s.title} variant="up" delay={i * 150}>
-                <StepCard step={i + 1} {...s} />
-              </ScrollReveal>
-            ))}
-          </div>
-        </div>
-
-        {/* Thin divider */}
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="border-t border-white/[0.07]" />
-        </div>
-
-        {/* ── CTA ── */}
-        <div className="relative px-4 py-24">
-          <ScrollReveal variant="zoom">
-            <div
-              className="relative max-w-4xl mx-auto overflow-hidden rounded-[2rem] p-12 sm:p-16 text-white text-center shadow-2xl shadow-blue-950/60"
               style={{
-                isolation: "isolate",
-                backgroundColor: "#2563eb",
-                backgroundImage:
-                  "linear-gradient(135deg, #2563eb 0%, #4338ca 50%, #6d28d9 100%)",
+                maxWidth: 1100,
+                margin: "0 auto",
+                padding: "32px 28px 32px",
+                display: "grid",
+                gridTemplateColumns: "1.3fr 1fr",
+                gap: 48,
+                alignItems: "center",
               }}
+              className="hero-grid"
             >
-              <div
-                aria-hidden
-                className="absolute inset-0 opacity-[0.12] dot-grid-bg text-white pointer-events-none"
-              />
-              <div aria-hidden className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-pink-400 blur-3xl opacity-40 animate-blob-2" />
-              <div aria-hidden className="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-cyan-400 blur-3xl opacity-40 animate-blob" />
+              {/* Left: copy */}
+              <div>
+                <div
+                  style={{
+                    fontFamily: "var(--font-mono, monospace)",
+                    fontSize: 11,
+                    letterSpacing: "0.3em",
+                    color: "var(--alm-red)",
+                    textTransform: "uppercase",
+                    marginBottom: 16,
+                  }}
+                >
+                  ◆ The Road-Trip Almanac · Issue 04 ◆
+                </div>
 
-              <div className="relative">
-                <h2 className="text-3xl sm:text-5xl font-black mb-4 tracking-tight">
-                  Ready to hit the road?
-                </h2>
-                <p className="text-blue-100 text-lg max-w-md mx-auto mb-8">
-                  No account needed to start planning. Sign up to save your trips
-                  across devices.
+                <HeroRotatingHeadline />
+
+                <p
+                  style={{
+                    fontSize: 17,
+                    lineHeight: 1.6,
+                    maxWidth: 480,
+                    marginTop: 16,
+                    color: "var(--alm-ink2)",
+                    fontFamily: "var(--font-inter, sans-serif)",
+                  }}
+                >
+                  Multi-stop routes, per-leg alternatives, weather, tolls, and an AI companion that reads like a glove-box guide. Built for drivers who'd rather see the country than the clock.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Link
-                    href="/planner"
-                    className="btn-shine btn-tap group inline-flex items-center justify-center gap-2 bg-white text-blue-700 px-8 py-4 rounded-2xl font-bold text-lg hover:-translate-y-0.5 transition-all shadow-xl"
-                  >
-                    <Compass className="w-5 h-5 transition-transform duration-500 group-hover:rotate-90" />
-                    Open the Planner
-                    <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+
+                <div style={{ display: "flex", gap: 12, marginTop: 20, flexWrap: "wrap" }}>
+                  <Link href="/planner" className="alm-btn-primary">
+                    Start planning →
                   </Link>
                   {isLoggedIn ? (
-                    <Link
-                      href="/trips"
-                      className="btn-tap inline-flex items-center justify-center gap-2 border-2 border-white/40 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white/10 transition-all"
-                    >
-                      <BookMarked className="w-5 h-5" />
+                    <Link href="/trips" className="alm-btn-ghost">
                       My Trips
                     </Link>
                   ) : (
-                    <Link
-                      href="/auth/signup"
-                      className="btn-tap inline-flex items-center justify-center gap-2 border-2 border-white/40 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-white/10 transition-all"
-                    >
+                    <Link href="/auth/signup" className="alm-btn-ghost">
                       Create account
                     </Link>
                   )}
                 </div>
               </div>
+
+              {/* Right: ticket cards */}
+              <div style={{ position: "relative" }}>
+                {/* Main ticket */}
+                <div
+                  style={{
+                    transform: "rotate(-2deg)",
+                    background: "var(--alm-cream)",
+                    border: "2px solid var(--alm-ink)",
+                    borderRadius: 4,
+                    padding: 24,
+                    boxShadow: "6px 6px 0 var(--alm-ink)",
+                  }}
+                >
+                  <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 10, letterSpacing: "0.3em", color: "var(--alm-red)", textAlign: "center", marginBottom: 8 }}>★ THE OPEN ROAD ★</div>
+                  <div className="alm-display" style={{ fontSize: 56, letterSpacing: "0.06em", textAlign: "center", lineHeight: 1, color: "var(--alm-ink)" }}>WAY · PT</div>
+                  <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 10, letterSpacing: "0.2em", color: "var(--alm-ink2)", textAlign: "center", marginTop: 8 }}>EST. 2026 · MILES AHEAD</div>
+                </div>
+
+                {/* Trip ticket */}
+                <div
+                  style={{
+                    marginTop: 20,
+                    transform: "rotate(1.5deg)",
+                    background: "var(--alm-cream)",
+                    border: "2px solid var(--alm-ink)",
+                    borderRadius: 4,
+                    padding: 20,
+                    boxShadow: "5px 5px 0 var(--alm-ink)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      borderBottom: "1px dashed var(--alm-ink)",
+                      paddingBottom: 8,
+                      marginBottom: 10,
+                      fontFamily: "var(--font-mono, monospace)",
+                      fontSize: 10,
+                      letterSpacing: "0.2em",
+                      textTransform: "uppercase",
+                      color: "var(--alm-ink2)",
+                    }}
+                  >
+                    <span>From</span><span>Via · 5 Stops</span><span>To</span>
+                  </div>
+                  <div className="alm-display" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 24, marginBottom: 10, color: "var(--alm-ink)" }}>
+                    <span>Boise</span>
+                    <span style={{ color: "var(--alm-red)", fontSize: 16 }}>━ ━ ━</span>
+                    <span>Yellowstone</span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontFamily: "var(--font-mono, monospace)", fontSize: 10, letterSpacing: "0.14em", color: "var(--alm-ink2)", textTransform: "uppercase" }}>
+                    <span>312 mi</span><span>5h 48m</span><span>~$8 tolls</span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </ScrollReveal>
-        </div>
-      </section>
 
-      <HomeFooter />
-    </div>
-    </HomePageCarCursor>
-  );
-}
+            {/* Stats strip */}
+            <div
+              style={{
+                maxWidth: 1100,
+                margin: "0 auto 0",
+                padding: "0 28px 28px",
+              }}
+            >
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(4, 1fr)",
+                  border: "2px solid var(--alm-ink)",
+                  background: "var(--alm-cream)",
+                }}
+                className="stats-grid"
+              >
+                {[
+                  ["ZERO", "Ads, ever"],
+                  ["∞", "Stops per trip"],
+                  ["<60s", "Setup time"],
+                  ["$0", "Cost — forever"],
+                ].map(([n, l], i) => (
+                  <div
+                    key={i}
+                    style={{
+                      padding: "18px 20px",
+                      borderRight: i < 3 ? "2px solid var(--alm-ink)" : "none",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div className="alm-display" style={{ fontSize: 40, lineHeight: 1, color: "var(--alm-red)" }}>{n}</div>
+                    <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--alm-ink2)", marginTop: 4 }}>{l}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </RoadTrail>
 
-/* ─────────── components ─────────── */
+        {/* ── FEATURES ── */}
+        <section style={{ background: "var(--alm-bg)", borderBottom: "2px solid var(--alm-ink)" }}>
+          <div style={{ maxWidth: 1100, margin: "0 auto", padding: "64px 28px" }}>
+            {/* Section header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 40, borderBottom: "2px solid var(--alm-ink)", paddingBottom: 16 }}>
+              <div>
+                <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 10, letterSpacing: "0.3em", color: "var(--alm-red)", textTransform: "uppercase", marginBottom: 8 }}>Chapter Two</div>
+                <h2 className="alm-display" style={{ fontSize: "clamp(32px, 5vw, 56px)", lineHeight: 0.95, margin: 0, fontWeight: 400, letterSpacing: "-0.02em" }}>
+                  Everything for <em style={{ color: "var(--alm-red)" }}>the trip.</em><br />Nothing you don&apos;t need.
+                </h2>
+              </div>
+              <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 11, color: "var(--alm-ink2)", letterSpacing: "0.18em", textTransform: "uppercase" }}>§ 02 · The Kit</div>
+            </div>
 
-const FEATURES = [
-  {
-    icon: Route,
-    title: "Smart Routing",
-    description:
-      "Add origin, destination, and stops along the way. See real driving directions instantly with multiple alternatives per leg.",
-    gradient: "from-blue-500 to-cyan-500",
-  },
-  {
-    icon: MessageCircle,
-    title: "AI Trip Assistant",
-    description:
-      "Chat with an AI companion while you plan. Ask about food, sights, rest stops — it suggests real named places you can add to your route in one tap.",
-    gradient: "from-violet-500 to-purple-500",
-    badge: "New",
-  },
-  {
-    icon: BookMarked,
-    title: "Save Your Trips",
-    description:
-      "Create an account and save all your road trip plans. Pick up exactly where you left off, on any device.",
-    gradient: "from-fuchsia-500 to-pink-500",
-  },
-  {
-    icon: ExternalLink,
-    title: "Open in Google Maps",
-    description:
-      "One click to launch your route in Google Maps for turn-by-turn navigation when it's go time.",
-    gradient: "from-pink-500 to-orange-500",
-  },
-];
+            {/* Feature cards */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 20 }} className="features-grid">
+              {[
+                { n: "01", t: "AI Companion", d: "Chat while you plan. It asks the right questions and suggests real, named places — diners, overlooks, weird museums.", isNew: true },
+                { n: "02", t: "Weather + Tolls", d: "Per-stop weather forecasts for your travel date and a running toll estimate per leg.", isNew: false },
+                { n: "03", t: "Smart Routing", d: "Origin, destination, and any number of stops. Real Google Maps directions with alternatives for every leg.", isNew: false },
+                { n: "04", t: "Save & Share", d: "Free account syncs trips across devices. Share an invite link to plan with whoever's coming.", isNew: false },
+              ].map((f) => (
+                <div
+                  key={f.n}
+                  style={{
+                    background: "var(--alm-cream)",
+                    border: "2px solid var(--alm-ink)",
+                    borderRadius: 4,
+                    padding: 24,
+                    position: "relative",
+                    boxShadow: "5px 5px 0 var(--alm-ink)",
+                  }}
+                >
+                  {f.isNew && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: -12,
+                        right: 20,
+                        background: "var(--alm-red)",
+                        color: "var(--alm-cream)",
+                        padding: "4px 10px",
+                        fontFamily: "var(--font-mono, monospace)",
+                        fontSize: 10,
+                        letterSpacing: "0.2em",
+                        textTransform: "uppercase",
+                        fontWeight: 700,
+                        border: "2px solid var(--alm-ink)",
+                        borderRadius: 4,
+                      }}
+                    >
+                      NEW
+                    </div>
+                  )}
+                  <div className="alm-display" style={{ fontSize: 52, color: "var(--alm-red)", lineHeight: 1, marginBottom: 6 }}>{f.n}</div>
+                  <h3 className="alm-display" style={{ fontSize: 28, margin: "0 0 8px", fontWeight: 400, letterSpacing: "-0.01em", color: "var(--alm-ink)" }}>{f.t}</h3>
+                  <p style={{ fontSize: 14, lineHeight: 1.6, color: "var(--alm-ink2)", margin: 0 }}>{f.d}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-const STEPS = [
-  {
-    icon: Search,
-    title: "Add your stops",
-    description:
-      "Type in a starting point, your destination, and any places you want to hit in between.",
-  },
-  {
-    icon: Route,
-    title: "Compare routes",
-    description:
-      "See alternative routes per leg with timing, distance, and roads — pick the best one.",
-  },
-  {
-    icon: Navigation,
-    title: "Hit the road",
-    description:
-      "Open your full route in Google Maps and track progress leg-by-leg as you drive.",
-  },
-];
+        {/* ── HOW IT WORKS ── */}
+        <section style={{ background: "var(--alm-cream)", borderBottom: "2px solid var(--alm-ink)" }}>
+          <div style={{ maxWidth: 1100, margin: "0 auto", padding: "64px 28px" }}>
+            {/* Section header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 48, borderBottom: "2px solid var(--alm-ink)", paddingBottom: 16 }}>
+              <div>
+                <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 10, letterSpacing: "0.3em", color: "var(--alm-red)", textTransform: "uppercase", marginBottom: 8 }}>Chapter Three</div>
+                <h2 className="alm-display" style={{ fontSize: "clamp(32px, 5vw, 56px)", lineHeight: 0.95, margin: 0, fontWeight: 400, letterSpacing: "-0.02em" }}>
+                  Three steps. <em style={{ color: "var(--alm-red)" }}>One open road.</em>
+                </h2>
+              </div>
+              <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 11, color: "var(--alm-ink2)", letterSpacing: "0.18em", textTransform: "uppercase" }}>§ 03 · The Method</div>
+            </div>
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="px-3 py-2">
-      <p className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
-        {value}
-      </p>
-      <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 dark:text-gray-500 mt-1">
-        {label}
-      </p>
-    </div>
-  );
-}
+            {/* Steps */}
+            <div style={{ position: "relative", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 0, paddingTop: 12 }} className="steps-grid">
+              {/* Dashed connector line */}
+              <div
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  top: 48,
+                  left: "17%",
+                  right: "17%",
+                  height: 2,
+                  borderTop: "2px dashed var(--alm-rule)",
+                }}
+              />
+              {[
+                ["I", "Drop your pins", "Origin, destination, and any worth-the-detour stops in between."],
+                ["II", "Compare the legs", "Alternative roads with timing, distance, and tolls — pick the one that fits."],
+                ["III", "Hit the road", "Hand it off to your nav app and check off legs as you drive."],
+              ].map(([n, t, d]) => (
+                <div key={n} style={{ textAlign: "center", padding: "0 24px", position: "relative" }}>
+                  <div
+                    className="alm-display"
+                    style={{
+                      width: 72,
+                      height: 72,
+                      borderRadius: "50%",
+                      background: "var(--alm-bg)",
+                      border: "2px solid var(--alm-ink)",
+                      margin: "0 auto",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 30,
+                      color: "var(--alm-red)",
+                      boxShadow: "3px 3px 0 var(--alm-ink)",
+                    }}
+                  >
+                    {n}
+                  </div>
+                  <h3 className="alm-display" style={{ fontSize: 26, margin: "22px 0 8px", fontWeight: 400, color: "var(--alm-ink)" }}>{t}</h3>
+                  <p style={{ fontSize: 14, color: "var(--alm-ink2)", lineHeight: 1.6, margin: 0, maxWidth: 240, marginInline: "auto" }}>{d}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-function FeatureCard({
-  icon: Icon,
-  title,
-  description,
-  gradient,
-  badge,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  description: string;
-  gradient: string;
-  badge?: string;
-}) {
-  return (
-    <div className="group lift relative h-full overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-7 hover:bg-white/10 hover:border-white/20 transition-all">
-      {/* Hover gradient wash */}
-      <div
-        aria-hidden
-        className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-[0.08] transition-opacity duration-500`}
-      />
+        {/* ── ROTATING QUOTES ── */}
+        <section style={{ background: "var(--alm-bg)", borderBottom: "2px solid var(--alm-ink)" }}>
+          <div style={{ maxWidth: 1100, margin: "0 auto", padding: "64px 28px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 40, borderBottom: "2px solid var(--alm-ink)", paddingBottom: 16 }}>
+              <div>
+                <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 10, letterSpacing: "0.3em", color: "var(--alm-red)", textTransform: "uppercase", marginBottom: 8 }}>Field Notes</div>
+                <h2 className="alm-display" style={{ fontSize: "clamp(32px, 5vw, 52px)", lineHeight: 0.95, margin: 0, fontWeight: 400, letterSpacing: "-0.02em" }}>
+                  From the road
+                </h2>
+              </div>
+              <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 11, color: "var(--alm-ink2)", letterSpacing: "0.18em", textTransform: "uppercase" }}>§ 04 · Trip log entries</div>
+            </div>
+            <div style={{ maxWidth: 800 }}>
+              <AlmRotatingQuote quotes={ALM_QUOTES} />
+            </div>
+          </div>
+        </section>
 
-      <div className="relative flex items-start justify-between mb-5">
-        <div
-          className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-lg shadow-black/30 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110`}
+        {/* ── DARK CTA BAND ── */}
+        <section
+          style={{
+            background: "var(--alm-ink)",
+            color: "var(--alm-cream)",
+            padding: "88px 28px",
+            textAlign: "center",
+            borderBottom: "2px solid var(--alm-ink)",
+          }}
         >
-          <Icon className="w-7 h-7" />
-        </div>
-        {badge && (
-          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full bg-violet-500/30 border border-violet-400/40 text-violet-300">
-            {badge}
-          </span>
-        )}
-      </div>
+          <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 11, letterSpacing: "0.3em", color: "var(--alm-red)", textTransform: "uppercase", marginBottom: 16 }}>★ ★ ★</div>
+          <h2
+            className="alm-display"
+            style={{
+              fontSize: "clamp(56px, 10vw, 96px)",
+              lineHeight: 0.9,
+              margin: 0,
+              fontWeight: 400,
+              letterSpacing: "-0.03em",
+            }}
+          >
+            Ready when <em style={{ color: "var(--alm-red)" }}>you are.</em>
+          </h2>
+          <p style={{ color: "rgba(250,243,231,0.65)", fontSize: 16, maxWidth: 440, margin: "20px auto 0", lineHeight: 1.6 }}>
+            No account needed to start planning. Sign up to save your trips across devices.
+          </p>
+          <div style={{ display: "flex", gap: 12, marginTop: 32, justifyContent: "center", flexWrap: "wrap" }}>
+            <Link
+              href="/planner"
+              style={{
+                fontFamily: "var(--font-mono, monospace)",
+                fontSize: 12,
+                letterSpacing: "0.18em",
+                textTransform: "uppercase",
+                fontWeight: 700,
+                color: "var(--alm-ink)",
+                background: "var(--alm-cream)",
+                textDecoration: "none",
+                padding: "12px 28px",
+                border: "2px solid var(--alm-cream)",
+                borderRadius: 4,
+                boxShadow: "4px 4px 0 var(--alm-red)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              Open the Planner →
+            </Link>
+            {isLoggedIn ? (
+              <Link
+                href="/trips"
+                style={{
+                  fontFamily: "var(--font-mono, monospace)",
+                  fontSize: 12,
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase",
+                  fontWeight: 700,
+                  color: "var(--alm-cream)",
+                  background: "transparent",
+                  textDecoration: "none",
+                  padding: "12px 28px",
+                  border: "2px solid rgba(250,243,231,0.35)",
+                  borderRadius: 4,
+                }}
+              >
+                My Trips
+              </Link>
+            ) : (
+              <Link
+                href="/auth/signup"
+                style={{
+                  fontFamily: "var(--font-mono, monospace)",
+                  fontSize: 12,
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase",
+                  fontWeight: 700,
+                  color: "var(--alm-cream)",
+                  background: "transparent",
+                  textDecoration: "none",
+                  padding: "12px 28px",
+                  border: "2px solid rgba(250,243,231,0.35)",
+                  borderRadius: 4,
+                }}
+              >
+                Create account
+              </Link>
+            )}
+          </div>
+        </section>
 
-      <h3 className="text-lg font-bold text-white mb-2">{title}</h3>
-      <p className="text-white/60 text-sm leading-relaxed">{description}</p>
-
-      <div className="mt-5 flex items-center gap-1.5 text-xs font-semibold text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
-        Learn more
-        <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
       </div>
-    </div>
-  );
-}
-
-function StepCard({
-  step,
-  icon: Icon,
-  title,
-  description,
-}: {
-  step: number;
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="relative h-full bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:border-white/20 transition-colors">
-      <div className="flex items-center justify-between mb-4">
-        <div className="relative grid place-items-center w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-500 shadow-lg shadow-blue-900/50">
-          <Icon className="w-6 h-6 text-white" />
-        </div>
-        <span className="text-5xl font-black text-white/10 leading-none">
-          0{step}
-        </span>
-      </div>
-      <h3 className="text-lg font-bold text-white mb-1.5">{title}</h3>
-      <p className="text-sm text-white/60 leading-relaxed">{description}</p>
-      <div className="mt-4 flex items-center gap-1.5 text-xs text-emerald-400 font-semibold">
-        <CheckCircle2 className="w-3.5 h-3.5" />
-        Takes seconds
-      </div>
-    </div>
+    </HomePageCarCursor>
   );
 }

@@ -120,16 +120,33 @@ function WaypointRow({
       } ${overlay ? "drop-shadow-2xl" : ""}`}
     >
       <div className="absolute left-0 top-7 flex flex-col items-center">
-        <div className={`w-3 h-3 rounded-full border-2 border-white shadow-md z-10 transition-colors ${overlay ? "bg-blue-500" : "bg-violet-400"}`} />
+        <div
+          className="w-3 h-3 rounded-full z-10 transition-colors"
+          style={{
+            background: overlay ? "var(--alm-red)" : "var(--alm-amber)",
+            border: "2px solid var(--alm-cream)",
+            boxShadow: "0 1px 4px rgba(31,26,23,0.18)",
+          }}
+        />
         {!overlay && (
-          <div className="w-px bg-gradient-to-b from-violet-300 to-blue-300 mt-1" style={{ height: 36 }} />
+          <div className="w-px mt-1" style={{ height: 36, background: "var(--alm-rule)" }} />
         )}
       </div>
-      <div className={`flex gap-2 items-end ${overlay ? "bg-white rounded-xl border border-blue-200 px-2 py-1 shadow-xl ring-2 ring-blue-100" : ""}`}>
+      <div
+        className={`flex gap-2 items-end`}
+        style={overlay ? {
+          background: "var(--alm-cream)",
+          borderRadius: 4,
+          border: "2px solid var(--alm-ink)",
+          boxShadow: "4px 4px 0 var(--alm-red)",
+          padding: "4px 8px",
+        } : {}}
+      >
         <div
-          className={`mb-1 p-1.5 rounded-lg transition-all shrink-0 touch-none ${
-            overlay ? "text-blue-500 cursor-grabbing" : "text-gray-300 hover:text-gray-500 hover:bg-gray-100 cursor-grab"
+          className={`mb-1 p-1.5 rounded transition-all shrink-0 touch-none ${
+            overlay ? "cursor-grabbing" : "cursor-grab"
           }`}
+          style={{ color: overlay ? "var(--alm-red)" : "var(--alm-rule)" }}
         >
           <GripVertical className="w-4 h-4" />
         </div>
@@ -144,7 +161,10 @@ function WaypointRow({
         <button
           type="button"
           onClick={() => onRemove(item.id)}
-          className="mb-0.5 p-2 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-all shrink-0"
+          className="mb-0.5 p-2 rounded transition-all shrink-0"
+          style={{ color: "var(--alm-rule)" }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--alm-red)"; (e.currentTarget as HTMLButtonElement).style.background = "rgba(194,91,58,0.08)"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--alm-rule)"; (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -205,20 +225,53 @@ function PlannerTollTotal({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [legs.map(l => `${l.originLat.toFixed(3)},${l.originLng.toFixed(3)},${l.durationSeconds}`).join("|")]);
 
-  if (loading) return <span className="inline-block h-4 w-16 bg-blue-100 dark:bg-blue-800 rounded-full animate-pulse" />;
+  if (loading) return (
+    <span
+      className="inline-block h-4 w-16 rounded-full animate-pulse"
+      style={{ background: "var(--alm-rule)" }}
+    />
+  );
   if (total === null) return null;
 
   return (
-    <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border ${
-      total > 0
-        ? "bg-amber-100 dark:bg-amber-400/20 border-amber-300 dark:border-amber-500 text-amber-800 dark:text-amber-300"
-        : "bg-white/60 dark:bg-white/10 border-blue-200 dark:border-blue-600 text-blue-500 dark:text-blue-300"
-    }`}>
+    <span
+      className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded"
+      style={{
+        background: total > 0 ? "rgba(192,138,53,0.12)" : "rgba(31,26,23,0.06)",
+        border: `1px solid ${total > 0 ? "var(--alm-amber)" : "var(--alm-rule)"}`,
+        color: total > 0 ? "var(--alm-amber)" : "var(--alm-ink2)",
+        fontFamily: "var(--font-mono, monospace)",
+      }}
+    >
       <Banknote className="w-3 h-3 shrink-0" />
       {total > 0 ? `~$${total.toFixed(2)} est.` : "No tolls"}
     </span>
   );
 }
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "10px 12px",
+  border: "2px solid var(--alm-rule)",
+  borderRadius: 4,
+  fontSize: 13,
+  color: "var(--alm-ink)",
+  background: "var(--alm-bg)",
+  outline: "none",
+  fontFamily: "inherit",
+  transition: "border-color 150ms",
+};
+
+const labelStyle: React.CSSProperties = {
+  display: "block",
+  fontSize: 10,
+  fontFamily: "var(--font-mono, monospace)",
+  fontWeight: 700,
+  color: "var(--alm-ink2)",
+  textTransform: "uppercase",
+  letterSpacing: "0.18em",
+  marginBottom: 6,
+};
 
 function PlannerInner() {
   const { isLoaded, loadError } = useJsApiLoader({
@@ -531,11 +584,11 @@ function PlannerInner() {
 
   if (loadError) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-64px)]">
-        <div className="text-center p-8 animate-fade-in">
-          <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Maps failed to load</h2>
-          <p className="text-gray-500 text-sm">Check your <code className="bg-gray-100 px-1 rounded">NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code></p>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "calc(100vh - 64px)", background: "var(--alm-bg)" }}>
+        <div style={{ textAlign: "center", padding: 32 }}>
+          <AlertCircle style={{ width: 48, height: 48, color: "var(--alm-red)", margin: "0 auto 16px" }} />
+          <h2 style={{ fontSize: 20, fontWeight: 600, color: "var(--alm-ink)", marginBottom: 8 }}>Maps failed to load</h2>
+          <p style={{ fontSize: 13, color: "var(--alm-ink2)" }}>Check your <code style={{ background: "var(--alm-rule)", padding: "2px 6px", borderRadius: 2 }}>NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code></p>
         </div>
       </div>
     );
@@ -543,36 +596,66 @@ function PlannerInner() {
 
   if (!isLoaded) {
     return (
-      <div className="flex flex-col items-center justify-center h-[calc(100vh-64px)] gap-3">
-        <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-        <p className="text-sm text-gray-400 animate-pulse">Loading maps…</p>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "calc(100vh - 64px)", gap: 12, background: "var(--alm-bg)" }}>
+        <Loader2 style={{ width: 32, height: 32, color: "var(--alm-red)" }} className="animate-spin" />
+        <p style={{ fontSize: 13, color: "var(--alm-ink2)", fontFamily: "var(--font-mono, monospace)" }}>Loading maps…</p>
       </div>
     );
   }
 
   return (
-    <div ref={layoutRef} className="flex h-[calc(100vh-64px)] overflow-hidden">
+    <div ref={layoutRef} className="flex overflow-hidden" style={{ height: "calc(100vh - 64px)" }}>
       {tripId && <PlannerLoader tripId={tripId} onLoaded={handleTripLoaded} />}
 
       {/* ── Sidebar (resizable) ── */}
       <aside
-        style={{ width: sidebarWidth }}
-        className="bg-white dark:bg-gray-800 border-r border-gray-100 dark:border-gray-700 flex flex-col overflow-y-auto shrink-0 shadow-sm">
-        <div className="px-5 pt-5 pb-4 border-b border-gray-100 dark:border-gray-700 animate-fade-in">
-          <h1 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <Navigation className="w-5 h-5 text-blue-600" />
+        style={{
+          width: sidebarWidth,
+          background: "var(--alm-cream)",
+          borderRight: "2px solid var(--alm-rule)",
+          display: "flex",
+          flexDirection: "column",
+          overflowY: "auto",
+          flexShrink: 0,
+        }}
+      >
+        {/* Header */}
+        <div
+          className="animate-fade-in"
+          style={{
+            padding: "20px 20px 16px",
+            borderBottom: "2px solid var(--alm-rule)",
+          }}
+        >
+          <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 10, letterSpacing: "0.2em", color: "var(--alm-red)", textTransform: "uppercase", marginBottom: 6 }}>
+            ★ Route planner ★
+          </div>
+          <h1
+            className="alm-display"
+            style={{ fontSize: 22, fontWeight: 400, color: "var(--alm-ink)", margin: 0, display: "flex", alignItems: "center", gap: 8 }}
+          >
+            <Navigation style={{ width: 18, height: 18, color: "var(--alm-red)", flexShrink: 0 }} />
             Plan your route
           </h1>
-          <p className="text-xs text-gray-400 dark:text-gray-400 mt-0.5 ml-7">Enter your stops, pick routes, and go</p>
+          <p style={{ fontSize: 12, color: "var(--alm-ink2)", marginTop: 4, marginLeft: 26, fontFamily: "var(--font-mono, monospace)" }}>
+            Enter your stops, pick routes, and go
+          </p>
         </div>
 
-        <div className="p-5 space-y-3 flex-1">
+        <div style={{ padding: "20px", flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
           {/* From */}
           <div className="relative pl-7">
             <div className="absolute left-0 top-7 flex flex-col items-center">
-              <div className="w-3 h-3 rounded-full bg-emerald-500 border-2 border-white shadow-md z-10" />
+              <div
+                className="w-3 h-3 rounded-full z-10"
+                style={{
+                  background: "var(--alm-green)",
+                  border: "2px solid var(--alm-cream)",
+                  boxShadow: "0 1px 4px rgba(31,26,23,0.18)",
+                }}
+              />
               {(waypoints.length > 0 || destination) && (
-                <div className="w-px bg-gradient-to-b from-emerald-300 to-violet-300 mt-1" style={{ height: 36 }} />
+                <div className="w-px mt-1" style={{ height: 36, background: "var(--alm-rule)" }} />
               )}
             </div>
             <PlaceAutocomplete label="From" placeholder="Starting point" value={origin} onChange={setOrigin} showCurrentLocation />
@@ -616,50 +699,108 @@ function PlannerInner() {
           {/* To */}
           <div className="relative pl-7">
             <div className="absolute left-0 top-7">
-              <div className="w-3 h-3 rounded-full bg-red-500 border-2 border-white shadow-md z-10" />
+              <div
+                className="w-3 h-3 rounded-full z-10"
+                style={{
+                  background: "var(--alm-red)",
+                  border: "2px solid var(--alm-cream)",
+                  boxShadow: "0 1px 4px rgba(31,26,23,0.18)",
+                }}
+              />
             </div>
             <PlaceAutocomplete label="To" placeholder="Destination" value={destination} onChange={setDestination} />
           </div>
 
           {/* Add stop */}
-          <button type="button" onClick={addWaypoint} className="flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium ml-7 px-2 py-1.5 rounded-lg hover:bg-blue-50 transition-all group">
+          <button
+            type="button"
+            onClick={addWaypoint}
+            className="flex items-center gap-2 text-sm font-medium ml-7 px-2 py-1.5 rounded transition-all group"
+            style={{ color: "var(--alm-red)", fontFamily: "var(--font-mono, monospace)", fontSize: 12, letterSpacing: "0.05em" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(194,91,58,0.08)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+          >
             <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-200" />
             Add a stop
           </button>
 
           {/* Departure date + time */}
           {stops.length > 0 && (
-            <div className="ml-7 animate-slide-up delay-150 space-y-2">
+            <div className="ml-7 space-y-2 animate-slide-up">
               {/* Date picker */}
               <div>
-                <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest mb-1.5">Departure date</label>
+                <label style={labelStyle}>Departure date</label>
                 <input
                   type="date"
                   value={departureDate}
                   onChange={(e) => setDepartureDate(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 hover:border-gray-300 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 shadow-sm transition-all"
+                  style={inputStyle}
+                  onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "var(--alm-ink)"; }}
+                  onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = "var(--alm-rule)"; }}
                 />
               </div>
               {/* Time picker */}
               <div>
-                <label className="block text-[10px] font-bold text-gray-400 dark:text-gray-400 uppercase tracking-widest mb-1.5">Departure time</label>
+                <label style={labelStyle}>Departure time</label>
                 <div className="flex items-center gap-2">
                   <div className="flex flex-col shrink-0">
-                    <button type="button" onClick={() => stepTime(15)} className="p-1 rounded-t-lg border border-gray-200 dark:border-gray-600 border-b-0 bg-white dark:bg-gray-700 hover:bg-blue-50 hover:text-blue-600 text-gray-400 transition-colors" title="+15 min">
+                    <button
+                      type="button"
+                      onClick={() => stepTime(15)}
+                      style={{
+                        padding: "4px",
+                        borderRadius: "4px 4px 0 0",
+                        border: "2px solid var(--alm-rule)",
+                        borderBottom: "1px solid var(--alm-rule)",
+                        background: "var(--alm-bg)",
+                        color: "var(--alm-ink2)",
+                        cursor: "pointer",
+                        transition: "all 150ms",
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(194,91,58,0.08)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--alm-red)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "var(--alm-bg)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--alm-ink2)"; }}
+                      title="+15 min"
+                    >
                       <ChevronUp className="w-3.5 h-3.5" />
                     </button>
-                    <button type="button" onClick={() => stepTime(-15)} className="p-1 rounded-b-lg border border-gray-200 dark:border-gray-600 border-t-0 bg-white dark:bg-gray-700 hover:bg-blue-50 hover:text-blue-600 text-gray-400 transition-colors" title="-15 min">
+                    <button
+                      type="button"
+                      onClick={() => stepTime(-15)}
+                      style={{
+                        padding: "4px",
+                        borderRadius: "0 0 4px 4px",
+                        border: "2px solid var(--alm-rule)",
+                        borderTop: "1px solid var(--alm-rule)",
+                        background: "var(--alm-bg)",
+                        color: "var(--alm-ink2)",
+                        cursor: "pointer",
+                        transition: "all 150ms",
+                      }}
+                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(194,91,58,0.08)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--alm-red)"; }}
+                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "var(--alm-bg)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--alm-ink2)"; }}
+                      title="-15 min"
+                    >
                       <ChevronDown className="w-3.5 h-3.5" />
                     </button>
                   </div>
                   <div className="relative flex-1">
-                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
-                    <input type="time" value={departureTime} onChange={(e) => setDepartureTime(e.target.value)} className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 hover:border-gray-300 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 shadow-sm transition-all" />
+                    <Clock
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 pointer-events-none"
+                      style={{ color: "var(--alm-ink2)" }}
+                    />
+                    <input
+                      type="time"
+                      value={departureTime}
+                      onChange={(e) => setDepartureTime(e.target.value)}
+                      style={{ ...inputStyle, paddingLeft: 36 }}
+                      onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "var(--alm-ink)"; }}
+                      onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = "var(--alm-rule)"; }}
+                    />
                   </div>
                 </div>
               </div>
               {departureTime && departureDate && (
-                <p className="text-xs text-gray-400 dark:text-gray-400 ml-10">
+                <p style={{ fontSize: 11, color: "var(--alm-ink2)", marginLeft: 40, fontFamily: "var(--font-mono, monospace)" }}>
                   Leaving {new Date(departureDate + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })} at {formatTime12(departureTime)}
                 </p>
               )}
@@ -670,26 +811,45 @@ function PlannerInner() {
           {legInfos.length > 0 && (
             <div className="ml-7 space-y-3 animate-slide-up">
               <div className="flex items-center gap-2 pt-1">
-                <Route className="w-3.5 h-3.5 text-gray-400" />
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Route options per leg</p>
+                <Route className="w-3.5 h-3.5" style={{ color: "var(--alm-ink2)" }} />
+                <p style={{ ...labelStyle, margin: 0 }}>Route options per leg</p>
               </div>
 
               {legInfos.map((leg) => {
                 const selIdx = selectedRoutePerLeg[leg.legIndex] ?? 0;
                 const selRoute = leg.routes[selIdx];
                 return (
-                  <div key={leg.legIndex} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-3 border border-gray-100 dark:border-gray-600">
+                  <div
+                    key={leg.legIndex}
+                    style={{
+                      background: "var(--alm-bg)",
+                      borderRadius: 4,
+                      padding: 12,
+                      border: "2px solid var(--alm-rule)",
+                    }}
+                  >
                     <div className="flex items-center gap-1.5 mb-2">
-                      <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
+                      <span
+                        className="w-5 h-5 text-[10px] font-bold flex items-center justify-center shrink-0"
+                        style={{
+                          borderRadius: "50%",
+                          background: "var(--alm-red)",
+                          color: "var(--alm-cream)",
+                          fontFamily: "var(--font-mono, monospace)",
+                        }}
+                      >
                         {leg.legIndex + 1}
                       </span>
-                      <p className="text-xs font-semibold text-gray-600 dark:text-gray-300 truncate">
+                      <p style={{ fontSize: 12, fontWeight: 600, color: "var(--alm-ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {truncateAddr(leg.from)} → {truncateAddr(leg.to)}
                       </p>
                     </div>
 
                     {leg.routes.length === 1 ? (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 px-1 flex items-center gap-1.5 flex-wrap">
+                      <p
+                        className="flex items-center gap-1.5 flex-wrap"
+                        style={{ fontSize: 12, color: "var(--alm-ink2)", padding: "0 4px" }}
+                      >
                         <span>via {selRoute?.summary} · {selRoute?.duration} · {selRoute?.distance}</span>
                         {stops[leg.legIndex] && stops[leg.legIndex + 1] && (
                           <TollBadge
@@ -706,11 +866,16 @@ function PlannerInner() {
                           <button
                             key={r.index}
                             onClick={() => handleLegRouteSelect(leg.legIndex, r.index)}
-                            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-[0.97] ${
-                              r.index === selIdx
-                                ? "bg-blue-600 text-white shadow-sm"
-                                : "bg-white dark:bg-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-500 border border-gray-200 dark:border-gray-500"
-                            }`}
+                            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded text-xs font-medium transition-all active:scale-[0.97]"
+                            style={r.index === selIdx ? {
+                              background: "var(--alm-ink)",
+                              color: "var(--alm-cream)",
+                              border: "none",
+                            } : {
+                              background: "var(--alm-cream)",
+                              color: "var(--alm-ink)",
+                              border: "2px solid var(--alm-rule)",
+                            }}
                           >
                             <span className="truncate mr-2">via {r.summary}</span>
                             <span className="shrink-0 opacity-80">{r.duration}</span>
@@ -737,11 +902,22 @@ function PlannerInner() {
           {/* Total summary */}
           {totalSeconds > 0 && (
             <div className="ml-7 animate-pop-in">
-              <div className="bg-gradient-to-br from-blue-50 dark:from-blue-900/20 to-indigo-50 dark:to-indigo-900/20 rounded-2xl p-4 border border-blue-100 dark:border-blue-800">
+              <div
+                style={{
+                  background: "var(--alm-bg)",
+                  borderRadius: 4,
+                  padding: 16,
+                  border: "2px solid var(--alm-ink)",
+                  boxShadow: "4px 4px 0 var(--alm-red)",
+                }}
+              >
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-[10px] text-blue-500 dark:text-blue-400 font-bold uppercase tracking-wide">Total distance</p>
-                    <p className="text-xl font-extrabold text-blue-900 dark:text-blue-200">
+                    <p style={{ ...labelStyle, color: "var(--alm-red)" }}>Total distance</p>
+                    <p
+                      className="alm-display"
+                      style={{ fontSize: 24, fontWeight: 400, color: "var(--alm-ink)", lineHeight: 1 }}
+                    >
                       {formatStoredDistance(
                         `${legInfos.reduce((acc, leg) => acc + parseFloat(leg.routes[selectedRoutePerLeg[leg.legIndex] ?? 0]?.distance ?? "0"), 0).toFixed(0)} mi`,
                         distanceUnit
@@ -749,24 +925,35 @@ function PlannerInner() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-blue-500 dark:text-blue-400 font-bold uppercase tracking-wide">Total drive time</p>
-                    <p className="text-xl font-extrabold text-blue-900 dark:text-blue-200">
+                    <p style={{ ...labelStyle, color: "var(--alm-red)" }}>Total drive time</p>
+                    <p
+                      className="alm-display"
+                      style={{ fontSize: 24, fontWeight: 400, color: "var(--alm-ink)", lineHeight: 1 }}
+                    >
                       {(() => { const h = Math.floor(totalSeconds / 3600), m = Math.round((totalSeconds % 3600) / 60); return h > 0 ? `${h}h ${m}m` : `${m}m`; })()}
                     </p>
                   </div>
                 </div>
                 {arrivalTime && (
-                  <div className="mt-3 pt-3 border-t border-blue-100 dark:border-blue-800 flex items-center gap-2">
-                    <Clock className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                  <div
+                    className="mt-3 pt-3 flex items-center gap-2"
+                    style={{ borderTop: "1px solid var(--alm-rule)" }}
+                  >
+                    <Clock className="w-3.5 h-3.5 shrink-0" style={{ color: "var(--alm-red)" }} />
                     <div>
-                      <p className="text-[10px] text-blue-500 dark:text-blue-400 font-bold uppercase tracking-wide">Arrive around</p>
-                      <p className="text-lg font-extrabold text-blue-900 dark:text-blue-200">{arrivalTime}</p>
+                      <p style={{ ...labelStyle, color: "var(--alm-red)", margin: 0, marginBottom: 2 }}>Arrive around</p>
+                      <p
+                        className="alm-display"
+                        style={{ fontSize: 20, fontWeight: 400, color: "var(--alm-ink)", lineHeight: 1 }}
+                      >
+                        {arrivalTime}
+                      </p>
                     </div>
                   </div>
                 )}
                 {stops.length >= 2 && legInfos.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-blue-100 dark:border-blue-800">
-                    <p className="text-[10px] text-blue-500 dark:text-blue-400 font-bold uppercase tracking-wide mb-1">Est. tolls</p>
+                  <div className="mt-3 pt-3" style={{ borderTop: "1px solid var(--alm-rule)" }}>
+                    <p style={{ ...labelStyle, color: "var(--alm-red)", marginBottom: 4 }}>Est. tolls</p>
                     <PlannerTollTotal
                       legs={stops.slice(0, -1).map((from, i) => ({
                         originLat: from.lat, originLng: from.lng,
@@ -774,7 +961,9 @@ function PlannerInner() {
                         durationSeconds: legInfos[i]?.routes[selectedRoutePerLeg[i] ?? 0]?.durationSeconds ?? 0,
                       }))}
                     />
-                    <p className="text-[10px] text-blue-400 dark:text-blue-500 mt-1">Estimates only · actual tolls may vary</p>
+                    <p style={{ fontSize: 10, color: "var(--alm-ink2)", marginTop: 4, fontFamily: "var(--font-mono, monospace)" }}>
+                      Estimates only · actual tolls may vary
+                    </p>
                   </div>
                 )}
               </div>
@@ -783,12 +972,29 @@ function PlannerInner() {
         </div>
 
         {/* Action bar */}
-        <div className="p-5 border-t border-gray-100 dark:border-gray-700 space-y-3 bg-gray-50/50 dark:bg-gray-900/50 animate-fade-in">
+        <div
+          className="animate-fade-in space-y-3"
+          style={{
+            padding: 20,
+            borderTop: "2px solid var(--alm-rule)",
+            background: "var(--alm-bg)",
+          }}
+        >
           <button
             type="button"
             onClick={() => window.open(buildMapsUrl(mapsApp, stops), "_blank", "noopener,noreferrer")}
             disabled={!canOpenMaps}
-            className="w-full flex items-center justify-center gap-2 bg-gray-900 text-white py-3 rounded-xl font-semibold text-sm hover:bg-gray-800 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm"
+            className="w-full flex items-center justify-center gap-2 py-3 font-semibold text-sm transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{
+              background: "var(--alm-ink)",
+              color: "var(--alm-cream)",
+              border: "2px solid var(--alm-ink)",
+              borderRadius: 4,
+              boxShadow: canOpenMaps ? "4px 4px 0 var(--alm-red)" : "none",
+              fontFamily: "var(--font-mono, monospace)",
+              fontSize: 12,
+              letterSpacing: "0.05em",
+            }}
           >
             <ExternalLink className="w-4 h-4" />
             Open in {mapsApp === "apple" ? "Apple Maps" : mapsApp === "waze" ? "Waze" : "Google Maps"}
@@ -798,7 +1004,18 @@ function PlannerInner() {
             <div className="space-y-2">
               {/* Editing badge */}
               {tripId && (
-                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl">
+                <div
+                  className="flex items-center gap-1.5 px-3 py-1.5"
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    color: "var(--alm-amber)",
+                    background: "rgba(192,138,53,0.1)",
+                    border: "1px solid var(--alm-amber)",
+                    borderRadius: 4,
+                    fontFamily: "var(--font-mono, monospace)",
+                  }}
+                >
                   <Pencil className="w-3 h-3 shrink-0" />
                   Editing saved trip
                 </div>
@@ -809,7 +1026,9 @@ function PlannerInner() {
                 placeholder="Trip name (e.g. Route 66 Adventure)"
                 value={tripName}
                 onChange={(e) => { setTripName(e.target.value); setSaveStatus("idle"); setSaveError(""); }}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 shadow-sm transition-all"
+                style={inputStyle}
+                onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = "var(--alm-ink)"; }}
+                onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = "var(--alm-rule)"; }}
               />
 
               {/* Primary save button */}
@@ -817,11 +1036,17 @@ function PlannerInner() {
                 type="button"
                 onClick={handleSave}
                 disabled={!canSave || saving || savingNew}
-                className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all active:scale-[0.98] shadow-sm ${
-                  saveStatus === "success"
-                    ? "bg-emerald-500 text-white"
-                    : "bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed"
-                }`}
+                className="w-full flex items-center justify-center gap-2 py-3 font-semibold text-sm transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{
+                  background: saveStatus === "success" ? "var(--alm-green)" : "var(--alm-ink)",
+                  color: "var(--alm-cream)",
+                  border: `2px solid ${saveStatus === "success" ? "var(--alm-green)" : "var(--alm-ink)"}`,
+                  borderRadius: 4,
+                  boxShadow: (canSave && !saving && !savingNew) ? `4px 4px 0 ${saveStatus === "success" ? "var(--alm-green)" : "var(--alm-red)"}` : "none",
+                  fontFamily: "var(--font-mono, monospace)",
+                  fontSize: 12,
+                  letterSpacing: "0.05em",
+                }}
               >
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saveStatus === "success" ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
                 {saving ? "Saving…" : saveStatus === "success" ? "Saved!" : tripId ? "Save changes" : "Save trip"}
@@ -833,7 +1058,16 @@ function PlannerInner() {
                   type="button"
                   onClick={handleSaveAsNew}
                   disabled={!canSave || saving || savingNew}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-semibold text-sm bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 font-semibold text-sm transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{
+                    background: "transparent",
+                    color: "var(--alm-ink)",
+                    border: "2px solid var(--alm-ink)",
+                    borderRadius: 4,
+                    fontFamily: "var(--font-mono, monospace)",
+                    fontSize: 12,
+                    letterSpacing: "0.05em",
+                  }}
                 >
                   {savingNew ? <Loader2 className="w-4 h-4 animate-spin" /> : <Copy className="w-4 h-4" />}
                   {savingNew ? "Saving…" : "Save as new trip"}
@@ -841,15 +1075,22 @@ function PlannerInner() {
               )}
 
               {saveStatus === "error" && (
-                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl px-3 py-2 animate-fade-in">
-                  <p className="text-red-600 text-xs font-semibold">Failed to save</p>
-                  {saveError && <p className="text-red-500 text-[11px] mt-0.5 break-words">{saveError}</p>}
+                <div
+                  className="animate-fade-in px-3 py-2"
+                  style={{
+                    background: "rgba(194,91,58,0.08)",
+                    border: "2px solid var(--alm-red)",
+                    borderRadius: 4,
+                  }}
+                >
+                  <p style={{ color: "var(--alm-red)", fontSize: 12, fontWeight: 600 }}>Failed to save</p>
+                  {saveError && <p style={{ color: "var(--alm-red)", fontSize: 11, marginTop: 2, wordBreak: "break-word", opacity: 0.8 }}>{saveError}</p>}
                 </div>
               )}
             </div>
           ) : (
-            <p className="text-center text-xs text-gray-400 dark:text-gray-400">
-              <a href="/auth/login" className="text-blue-600 hover:underline font-semibold">Log in</a> to save your trips
+            <p style={{ textAlign: "center", fontSize: 12, color: "var(--alm-ink2)", fontFamily: "var(--font-mono, monospace)" }}>
+              <a href="/auth/login" style={{ color: "var(--alm-red)", fontWeight: 600, textDecoration: "underline" }}>Log in</a> to save your trips
             </p>
           )}
         </div>
@@ -866,17 +1107,31 @@ function PlannerInner() {
           setIsResizing(true);
         }}
         onDoubleClick={() => setSidebarWidth(SIDEBAR_DEFAULT_WIDTH)}
-        className={`group relative w-1.5 shrink-0 cursor-col-resize transition-colors ${
-          isResizing ? "bg-blue-400" : "bg-gray-100 dark:bg-gray-700 hover:bg-blue-200"
-        }`}
+        style={{
+          width: 6,
+          flexShrink: 0,
+          cursor: "col-resize",
+          background: isResizing ? "var(--alm-red)" : "var(--alm-rule)",
+          position: "relative",
+          transition: "background 150ms",
+        }}
+        className="group"
+        onMouseEnter={(e) => { if (!isResizing) (e.currentTarget as HTMLDivElement).style.background = "rgba(194,91,58,0.35)"; }}
+        onMouseLeave={(e) => { if (!isResizing) (e.currentTarget as HTMLDivElement).style.background = "var(--alm-rule)"; }}
       >
         {/* Visual grip — appears on hover/drag */}
         <div
-          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center rounded-md bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 shadow-sm w-4 h-10 transition-opacity ${
+          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-4 h-10 transition-opacity ${
             isResizing ? "opacity-100" : "opacity-0 group-hover:opacity-100"
           }`}
+          style={{
+            borderRadius: 4,
+            background: "var(--alm-cream)",
+            border: "2px solid var(--alm-rule)",
+            boxShadow: "1px 1px 0 var(--alm-rule)",
+          }}
         >
-          <GripVertical className="w-3 h-3 text-gray-500" />
+          <GripVertical className="w-3 h-3" style={{ color: "var(--alm-ink2)" }} />
         </div>
       </div>
 
@@ -892,8 +1147,19 @@ function PlannerInner() {
           onAllLegsLoaded={handleAllLegsLoaded}
         />
         {stops.length < 2 && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-gray-200 dark:border-gray-600 shadow-md text-gray-400 dark:text-gray-500 text-sm font-medium pointer-events-none select-none">
-            <svg className="w-4 h-4 text-violet-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
+          <div
+            className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-4 py-2.5 pointer-events-none select-none"
+            style={{
+              borderRadius: 999,
+              background: "rgba(250,243,231,0.92)",
+              border: "2px solid var(--alm-rule)",
+              boxShadow: "2px 2px 0 var(--alm-rule)",
+              color: "var(--alm-ink2)",
+              fontSize: 13,
+              fontFamily: "var(--font-mono, monospace)",
+            }}
+          >
+            <svg className="w-4 h-4 shrink-0" style={{ color: "var(--alm-red)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
             Enter origin and destination to chat with AI
           </div>
         )}

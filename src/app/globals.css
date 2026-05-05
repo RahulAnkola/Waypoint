@@ -3,13 +3,43 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #111827;
+  /* Almanac color system */
+  --alm-bg: #f4ede2;
+  --alm-cream: #faf3e7;
+  --alm-ink: #1f1a17;
+  --alm-ink2: #5c4f42;
+  --alm-ink3: #9c8f82;
+  --alm-red: #c25b3a;
+  --alm-red2: #a04830;
+  --alm-rule: #d9cfc4;
+  --alm-green: #4a7c59;
+  --alm-amber: #c08a35;
+  --alm-blue: #3a5f8a;
+
+  --background: #f4ede2;
+  --foreground: #1f1a17;
+
+  --font-display: var(--font-display, "Georgia, serif");
+  --font-mono: var(--font-mono, "monospace");
 }
 
 .dark {
-  --background: #0f172a;
-  --foreground: #f1f5f9;
+  --alm-bg: #1f1a17;
+  --alm-cream: #2c2420;
+  --alm-ink: #f4ede2;
+  --alm-ink2: #c5b09a;
+  --alm-ink3: #8a7a6e;
+  --alm-rule: #3d342e;
+
+  --background: #1a1410;
+  --foreground: #f4ede2;
+}
+
+/* Inverted section — light text on ink background, works in both light and dark mode */
+.alm-on-ink {
+  --alm-ink: #f4ede2;
+  --alm-ink2: rgba(250, 243, 231, 0.65);
+  --alm-rule: rgba(250, 243, 231, 0.2);
 }
 
 .dark body {
@@ -25,49 +55,49 @@
 .dark input[type="time"],
 .dark input[type="search"],
 .dark textarea {
-  color: #f1f5f9 !important;
-  -webkit-text-fill-color: #f1f5f9 !important;
+  color: #f4ede2 !important;
+  -webkit-text-fill-color: #f4ede2 !important;
 }
 
 .dark input:-webkit-autofill,
 .dark input:-webkit-autofill:hover,
 .dark input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #f1f5f9 !important;
-  -webkit-box-shadow: 0 0 0px 1000px #1e293b inset !important;
-  box-shadow: 0 0 0px 1000px #1e293b inset !important;
+  -webkit-text-fill-color: #f4ede2 !important;
+  -webkit-box-shadow: 0 0 0px 1000px #2c2420 inset !important;
+  box-shadow: 0 0 0px 1000px #2c2420 inset !important;
 }
 
 /* dark Google Places dropdown */
 .dark .pac-container {
-  background: #1e293b;
-  border-color: #334155;
+  background: #2c2420;
+  border-color: #3d342e;
 }
 .dark .pac-item {
-  color: #e2e8f0 !important;
-  border-color: #334155;
+  color: #f4ede2 !important;
+  border-color: #3d342e;
 }
 .dark .pac-item:hover,
 .dark .pac-item-selected {
-  background: #1d3a6e;
+  background: #3d342e;
 }
 .dark .pac-item-query {
-  color: #e2e8f0 !important;
+  color: #f4ede2 !important;
 }
 
 /* dark scrollbar */
 .dark ::-webkit-scrollbar-track {
-  background: #1e293b;
+  background: #2c2420;
 }
 .dark ::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: #5c4f42;
 }
 
-/* Hero bottom fade — light → dark depending on mode */
+/* Hero bottom fade — matches ALM bg */
 .hero-bottom-fade {
-  background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+  background: linear-gradient(to bottom, rgba(244,237,226,0) 0%, rgba(244,237,226,1) 100%);
 }
 .dark .hero-bottom-fade {
-  background: linear-gradient(to bottom, rgba(15,23,42,0) 0%, rgba(15,23,42,1) 100%);
+  background: linear-gradient(to bottom, rgba(31,26,23,0) 0%, rgba(31,26,23,1) 100%);
 }
 
 html {
@@ -77,12 +107,12 @@ html {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Force dark text on all inputs — fixes invisible text on autofill/autocomplete */
+/* Force ink text on all inputs — fixes invisible text on autofill/autocomplete */
 input,
 input[type="text"],
 input[type="email"],
@@ -90,17 +120,76 @@ input[type="password"],
 input[type="time"],
 input[type="search"],
 textarea {
-  color: #111827 !important;
-  -webkit-text-fill-color: #111827 !important;
+  color: #1f1a17 !important;
+  -webkit-text-fill-color: #1f1a17 !important;
 }
 
 /* Fix browser autofill background */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #111827 !important;
-  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
-  box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #1f1a17 !important;
+  -webkit-box-shadow: 0 0 0px 1000px #faf3e7 inset !important;
+  box-shadow: 0 0 0px 1000px #faf3e7 inset !important;
+}
+
+/* ── Almanac typography ── */
+.alm-display {
+  font-family: var(--font-display), "DM Serif Display", Georgia, serif;
+}
+.alm-mono {
+  font-family: var(--font-mono), "JetBrains Mono", "Fira Code", monospace;
+}
+.alm-body {
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+}
+
+/* ── Almanac hard-shadow button ── */
+.alm-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: var(--alm-ink);
+  color: var(--alm-cream);
+  border: 2px solid var(--alm-ink);
+  border-radius: 4px;
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 var(--alm-red);
+  transition: box-shadow 120ms, transform 120ms;
+  text-decoration: none;
+}
+.alm-btn-primary:hover {
+  box-shadow: 2px 2px 0 var(--alm-red);
+  transform: translate(2px, 2px);
+}
+.alm-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  background: transparent;
+  color: var(--alm-ink);
+  border: 2px solid var(--alm-ink);
+  border-radius: 4px;
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 var(--alm-ink);
+  transition: box-shadow 120ms, transform 120ms;
+  text-decoration: none;
+}
+.alm-btn-ghost:hover {
+  box-shadow: 2px 2px 0 var(--alm-ink);
+  transform: translate(2px, 2px);
 }
 
 /* ── Google Places Autocomplete dropdown ── */
@@ -154,14 +243,14 @@ input:-webkit-autofill:focus {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: var(--alm-cream, #faf3e7);
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
+  background: var(--alm-rule, #d9cfc4);
+  border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--alm-ink3, #9c8f82);
 }
 
 /* ───────────────────────────────────────────
@@ -406,6 +495,40 @@ input:-webkit-autofill:focus {
   opacity: 1;
   transform: none;
   filter: none;
+}
+
+/* ── Almanac responsive grids ── */
+@media (max-width: 768px) {
+  .hero-grid,
+  .about-hero-grid,
+  .auth-grid,
+  .dev-card-grid,
+  .trips-header {
+    grid-template-columns: 1fr !important;
+  }
+  .features-grid,
+  .features-ledger,
+  .stack-grid,
+  .steps-grid,
+  .stats-grid,
+  .trips-stats {
+    grid-template-columns: 1fr !important;
+  }
+  .stats-grid > div {
+    border-right: none !important;
+    border-bottom: 2px solid var(--alm-ink);
+  }
+  .footer-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .auth-grid > div:first-child {
+    display: none;
+  }
+}
+@media (max-width: 480px) {
+  .footer-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* ── reduced-motion safety ── */

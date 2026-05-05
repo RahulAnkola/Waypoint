@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { Users, ArrowRight, X, Link2 } from "lucide-react";
+import { Users, ArrowRight, X } from "lucide-react";
 
 export default function JoinTripButton() {
   const [open, setOpen] = useState(false);
@@ -13,7 +13,6 @@ export default function JoinTripButton() {
   const btnRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Position popup relative to button using fixed coords (escapes all stacking contexts)
   useEffect(() => {
     if (!open || !btnRef.current) return;
     const rect = btnRef.current.getBoundingClientRect();
@@ -21,13 +20,12 @@ export default function JoinTripButton() {
       position: "fixed",
       top: rect.bottom + 8,
       right: window.innerWidth - rect.right,
-      width: 288,
+      width: 300,
       zIndex: 9999,
     });
     setTimeout(() => inputRef.current?.focus(), 50);
   }, [open]);
 
-  // Close on outside click
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
@@ -53,22 +51,27 @@ export default function JoinTripButton() {
   const popup = open ? (
     <div
       id="join-trip-popup"
-      style={popupStyle}
-      className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl p-4 animate-fade-in"
+      style={{
+        ...popupStyle,
+        background: "var(--alm-cream)",
+        border: "2px solid var(--alm-ink)",
+        borderRadius: 4,
+        boxShadow: "4px 4px 0 var(--alm-red)",
+        padding: 20,
+      }}
     >
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-1.5">
-          <Link2 className="w-4 h-4 text-blue-500" />
-          Join with share link
-        </p>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+        <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase", color: "var(--alm-red)", fontWeight: 700 }}>
+          ≈ Join a trip
+        </div>
         <button
           onClick={() => setOpen(false)}
-          className="text-gray-400 hover:text-gray-600 transition-colors"
+          style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--alm-ink2)", display: "flex", padding: 2 }}
         >
-          <X className="w-4 h-4" />
+          <X style={{ width: 14, height: 14 }} />
         </button>
       </div>
-      <p className="text-xs text-gray-400 dark:text-gray-400 mb-3">
+      <p style={{ fontSize: 12, color: "var(--alm-ink2)", marginBottom: 12, lineHeight: 1.5 }}>
         Paste the full share link or just the code from your friend.
       </p>
       <input
@@ -77,14 +80,45 @@ export default function JoinTripButton() {
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={(e) => { if (e.key === "Enter") handleJoin(); }}
         placeholder="https://…/trips/join/ABCD1234"
-        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900 focus:border-blue-400 text-sm text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder:text-gray-300 mb-3"
+        style={{
+          width: "100%",
+          padding: "9px 12px",
+          border: "1.5px solid var(--alm-rule)",
+          borderRadius: 3,
+          background: "transparent",
+          color: "var(--alm-ink)",
+          fontFamily: "var(--font-mono, monospace)",
+          fontSize: 12,
+          outline: "none",
+          boxSizing: "border-box",
+          marginBottom: 12,
+        }}
       />
       <button
         onClick={handleJoin}
         disabled={!input.trim()}
-        className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8,
+          fontFamily: "var(--font-mono, monospace)",
+          fontSize: 11,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          fontWeight: 700,
+          background: input.trim() ? "var(--alm-ink)" : "var(--alm-rule)",
+          color: "var(--alm-cream)",
+          border: "2px solid var(--alm-ink)",
+          borderRadius: 3,
+          padding: "10px 16px",
+          cursor: input.trim() ? "pointer" : "not-allowed",
+          boxShadow: input.trim() ? "3px 3px 0 var(--alm-red)" : "none",
+          transition: "all 150ms",
+        }}
       >
-        Join <ArrowRight className="w-4 h-4" />
+        Join Trip <ArrowRight style={{ width: 12, height: 12 }} />
       </button>
     </div>
   ) : null;
@@ -94,9 +128,27 @@ export default function JoinTripButton() {
       <button
         ref={btnRef}
         onClick={() => setOpen((o) => !o)}
-        className="btn-tap inline-flex items-center gap-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 px-4 py-3 rounded-2xl font-semibold text-sm hover:border-blue-300 hover:text-blue-700 transition-all shadow-sm"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          fontFamily: "var(--font-mono, monospace)",
+          fontSize: 11,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          fontWeight: 700,
+          background: "transparent",
+          color: "var(--alm-ink)",
+          border: "2px solid var(--alm-rule)",
+          borderRadius: 3,
+          padding: "10px 16px",
+          cursor: "pointer",
+          transition: "border-color 150ms, color 150ms",
+        }}
+        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--alm-ink)"; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--alm-rule)"; }}
       >
-        <Users className="w-4 h-4" />
+        <Users style={{ width: 14, height: 14 }} />
         Join trip
       </button>
       {typeof document !== "undefined" && popup

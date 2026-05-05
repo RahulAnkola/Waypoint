@@ -16,21 +16,36 @@ export default async function TripDetailPage({ params }: { params: Promise<{ id:
     .from("trips")
     .select("*")
     .eq("id", id)
-    .single(); // RLS handles auth: owner OR member
+    .single();
 
   if (!data) notFound();
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10 animate-fade-in">
-      <Link
-        href="/trips"
-        className="inline-flex items-center gap-1.5 text-sm text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors mb-6 group"
-      >
-        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-        Back to My Trips
-      </Link>
+    <div style={{ background: "var(--alm-bg)", color: "var(--alm-ink)", minHeight: "calc(100vh - 64px)" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 28px 64px" }}>
+        <Link
+          href="/trips"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            fontFamily: "var(--font-mono, monospace)",
+            fontSize: 11,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            color: "var(--alm-ink2)",
+            textDecoration: "none",
+            marginBottom: 24,
+            transition: "color 150ms",
+          }}
+          className="hover-red"
+        >
+          <ArrowLeft style={{ width: 14, height: 14 }} />
+          Back to My Trips
+        </Link>
 
-      <TripDetailClient trip={data as Trip} />
+        <TripDetailClient trip={data as Trip} />
+      </div>
     </div>
   );
 }

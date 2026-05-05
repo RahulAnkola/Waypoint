@@ -36,10 +36,10 @@ export default function CarIcon() {
 
       <ellipse cx="19" cy="55" rx="15" ry="2" fill="rgba(0,0,0,0.35)" />
 
-      <rect x="2" y="12" width="4" height="8" rx="1.5" fill="#0f172a" />
-      <rect x="32" y="12" width="4" height="8" rx="1.5" fill="#0f172a" />
-      <rect x="2" y="38" width="4" height="8" rx="1.5" fill="#0f172a" />
-      <rect x="32" y="38" width="4" height="8" rx="1.5" fill="#0f172a" />
+      <rect x="2" y="12" width="4" height="8" rx="1.5" fill="#1f1a17" />
+      <rect x="32" y="12" width="4" height="8" rx="1.5" fill="#1f1a17" />
+      <rect x="2" y="38" width="4" height="8" rx="1.5" fill="#1f1a17" />
+      <rect x="32" y="38" width="4" height="8" rx="1.5" fill="#1f1a17" />
 
       <rect
         x="5"
@@ -47,40 +47,40 @@ export default function CarIcon() {
         width="28"
         height="50"
         rx="6"
-        fill="#dc2626"
-        stroke="#7f1d1d"
+        fill="#c25b3a"
+        stroke="#7a3320"
         strokeWidth="0.8"
       />
 
-      <rect x="7" y="5" width="24" height="12" rx="3" fill="#ef4444" opacity="0.85" />
+      <rect x="7" y="5" width="24" height="12" rx="3" fill="#d4724f" opacity="0.85" />
 
       <path
         d="M9 17 Q19 14 29 17 L27 25 L11 25 Z"
-        fill="#1e3a8a"
+        fill="#1f1a17"
         opacity="0.85"
       />
 
-      <rect x="9" y="25" width="20" height="11" rx="1.5" fill="#b91c1c" />
+      <rect x="9" y="25" width="20" height="11" rx="1.5" fill="#a84b2d" />
 
-      <rect x="11" y="26.5" width="6" height="8" rx="1" fill="#fecaca" opacity="0.25" />
+      <rect x="11" y="26.5" width="6" height="8" rx="1" fill="#faf3e7" opacity="0.2" />
 
       <path
         d="M11 36 L27 36 L29 43 Q19 41 9 43 Z"
-        fill="#1e3a8a"
+        fill="#1f1a17"
         opacity="0.7"
       />
 
-      <rect x="7" y="42" width="24" height="9" rx="2.5" fill="#ef4444" opacity="0.85" />
+      <rect x="7" y="42" width="24" height="9" rx="2.5" fill="#d4724f" opacity="0.85" />
 
       <circle cx="10" cy="5.5" r="4.5" fill="url(#rt-headlight-glow)" />
       <circle cx="28" cy="5.5" r="4.5" fill="url(#rt-headlight-glow)" />
       <ellipse cx="10" cy="5.5" rx="2.2" ry="1.4" fill="#fffbeb" />
       <ellipse cx="28" cy="5.5" rx="2.2" ry="1.4" fill="#fffbeb" />
 
-      <rect x="8" y="49.5" width="5" height="2" rx="0.6" fill="#7f1d1d" />
-      <rect x="25" y="49.5" width="5" height="2" rx="0.6" fill="#7f1d1d" />
+      <rect x="8" y="49.5" width="5" height="2" rx="0.6" fill="#7a3320" />
+      <rect x="25" y="49.5" width="5" height="2" rx="0.6" fill="#7a3320" />
 
-      <line x1="19" y1="6" x2="19" y2="50" stroke="#7f1d1d" strokeWidth="0.4" opacity="0.5" />
+      <line x1="19" y1="6" x2="19" y2="50" stroke="#7a3320" strokeWidth="0.4" opacity="0.5" />
     </svg>
   );
 }

@@ -20,7 +20,7 @@ function formatTime12(t: string): string {
   return `${h % 12 === 0 ? 12 : h % 12}:${String(m).padStart(2, "0")} ${h >= 12 ? "PM" : "AM"}`;
 }
 
-const STOP_COLORS = ["bg-emerald-500", "bg-violet-400", "bg-amber-400", "bg-red-500"];
+const STOP_DOT_COLORS = ["var(--alm-green)", "var(--alm-amber)", "var(--alm-amber)", "var(--alm-red)"];
 
 function TripCard({
   trip, userId, onRemove, onToggleComplete,
@@ -61,10 +61,8 @@ function TripCard({
     setDeleting(true);
     const db = createClient();
     if (isLast) {
-      // Last person — actually delete the row
       await db.from("trips").delete().eq("id", trip.id);
     } else {
-      // Remove self from user_ids; if owner leaves, index 1 is promoted automatically
       const next = userIds.filter((id) => id !== userId);
       await db.from("trips").update({ user_ids: next }).eq("id", trip.id);
     }
@@ -94,42 +92,118 @@ function TripCard({
   return (
     <div
       onClick={() => router.push(`/trips/${trip.id}`)}
-      className={`lift relative block bg-white dark:bg-gray-800 border rounded-2xl p-5 transition-all duration-200 animate-slide-up group cursor-pointer overflow-hidden ${
-        trip.completed
-          ? "border-emerald-200 dark:border-emerald-800 bg-emerald-50/40 dark:bg-emerald-900/20"
-          : "border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-xl"
-      }`}
+      className="group cursor-pointer animate-slide-up"
+      style={{
+        position: "relative",
+        background: trip.completed ? "rgba(74,124,89,0.06)" : "var(--alm-cream)",
+        border: `2px solid ${trip.completed ? "var(--alm-green)" : "var(--alm-rule)"}`,
+        borderRadius: 4,
+        padding: 20,
+        transition: "box-shadow 200ms, border-color 200ms",
+        overflow: "hidden",
+      }}
+      onMouseEnter={(e) => {
+        if (!trip.completed) {
+          (e.currentTarget as HTMLDivElement).style.borderColor = "var(--alm-ink)";
+          (e.currentTarget as HTMLDivElement).style.boxShadow = "4px 4px 0 var(--alm-red)";
+        }
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLDivElement).style.borderColor = trip.completed ? "var(--alm-green)" : "var(--alm-rule)";
+        (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
+      }}
     >
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-0.5 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500" />
+      {/* Top accent bar */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: "0 0 auto 0",
+          height: 3,
+          background: trip.completed ? "var(--alm-green)" : "var(--alm-red)",
+          opacity: trip.completed ? 1 : 0,
+          transition: "opacity 200ms",
+        }}
+        className="group-hover:opacity-100"
+      />
 
       {/* Header */}
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className={`font-bold text-base truncate transition-colors ${trip.completed ? "text-gray-400 dark:text-gray-500 line-through" : "text-gray-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400"}`}>
+            <h3
+              className="alm-display"
+              style={{
+                fontSize: 18,
+                fontWeight: 400,
+                color: trip.completed ? "var(--alm-ink2)" : "var(--alm-ink)",
+                textDecoration: trip.completed ? "line-through" : "none",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                transition: "color 150ms",
+              }}
+            >
               {trip.name}
             </h3>
             {trip.completed && (
-              <span className="shrink-0 bg-emerald-100 text-emerald-700 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full">Done</span>
+              <span
+                style={{
+                  flexShrink: 0,
+                  background: "rgba(74,124,89,0.12)",
+                  color: "var(--alm-green)",
+                  fontSize: 9,
+                  fontWeight: 700,
+                  letterSpacing: "0.15em",
+                  textTransform: "uppercase",
+                  padding: "2px 6px",
+                  border: "1px solid var(--alm-green)",
+                  borderRadius: 2,
+                  fontFamily: "var(--font-mono, monospace)",
+                }}
+              >
+                Done
+              </span>
             )}
             {isParty && (
-              <span className="shrink-0 inline-flex items-center gap-1 bg-violet-100 text-violet-600 text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full">
+              <span
+                className="inline-flex items-center gap-1"
+                style={{
+                  flexShrink: 0,
+                  background: "rgba(192,138,53,0.12)",
+                  color: "var(--alm-amber)",
+                  fontSize: 9,
+                  fontWeight: 700,
+                  letterSpacing: "0.15em",
+                  textTransform: "uppercase",
+                  padding: "2px 6px",
+                  border: "1px solid var(--alm-amber)",
+                  borderRadius: 2,
+                  fontFamily: "var(--font-mono, monospace)",
+                }}
+              >
                 <Users className="w-2.5 h-2.5" /> Party
               </span>
             )}
           </div>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+          <p style={{ fontSize: 11, color: "var(--alm-ink2)", marginTop: 2, fontFamily: "var(--font-mono, monospace)" }}>
             {trip.departure_date
               ? formatDate(trip.departure_date + "T12:00:00")
               : formatDate(trip.created_at)}
           </p>
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          {/* Share button — only for owners */}
           {isOwner && (
             <button
               onClick={handleShare}
-              className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-all text-xs font-medium ${copied ? "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-400" : "text-gray-300 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 p-1.5"}`}
+              className="flex items-center gap-1 px-2 py-1 rounded transition-all text-xs font-medium"
+              style={{
+                color: copied ? "var(--alm-green)" : "var(--alm-rule)",
+                background: copied ? "rgba(74,124,89,0.1)" : "transparent",
+                fontFamily: "var(--font-mono, monospace)",
+              }}
+              onMouseEnter={(e) => { if (!copied) (e.currentTarget as HTMLButtonElement).style.color = "var(--alm-red)"; }}
+              onMouseLeave={(e) => { if (!copied) (e.currentTarget as HTMLButtonElement).style.color = "var(--alm-rule)"; }}
               title={trip.share_code ? "Copy share link" : "Share trip"}
             >
               {copied ? (
@@ -139,26 +213,47 @@ function TripCard({
               )}
             </button>
           )}
-          {/* Delete/Leave — available to everyone */}
           <button
             onClick={handleDelete}
             disabled={deleting}
-            className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+            className="p-1.5 rounded transition-all"
+            style={{ color: "var(--alm-rule)" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--alm-red)"; (e.currentTarget as HTMLButtonElement).style.background = "rgba(194,91,58,0.08)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--alm-rule)"; (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
             title={userIds.length > 1 ? "Leave trip" : "Delete trip"}
           >
             {deleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
           </button>
-          <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
+          <ChevronRight
+            className="w-4 h-4 transition-transform group-hover:translate-x-0.5"
+            style={{ color: "var(--alm-rule)" }}
+          />
         </div>
       </div>
 
       {/* Stops */}
       <div className="relative pl-4 space-y-1.5 mb-3">
-        <div className="absolute left-1 top-1.5 bottom-1.5 w-px bg-gradient-to-b from-emerald-300 via-violet-300 to-red-300" />
+        <div
+          className="absolute left-1 top-1.5 bottom-1.5 w-px"
+          style={{ background: "var(--alm-rule)" }}
+        />
         {stops.map((stop, i) => (
           <div key={i} className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full shrink-0 ring-2 ring-white ${STOP_COLORS[Math.min(i, STOP_COLORS.length - 1)]}`} />
-            <p className={`text-xs truncate ${i === 0 || i === stops.length - 1 ? "text-gray-700 dark:text-gray-300 font-medium" : "text-gray-400 dark:text-gray-500"}`}>
+            <div
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{
+                background: STOP_DOT_COLORS[Math.min(i === stops.length - 1 ? 3 : i, 3)],
+                boxShadow: "0 0 0 2px var(--alm-cream)",
+              }}
+            />
+            <p style={{
+              fontSize: 12,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              color: (i === 0 || i === stops.length - 1) ? "var(--alm-ink)" : "var(--alm-ink2)",
+              fontWeight: (i === 0 || i === stops.length - 1) ? 600 : 400,
+            }}>
               {stop.address.split(",")[0]}
             </p>
           </div>
@@ -167,16 +262,51 @@ function TripCard({
 
       {/* Timing chips */}
       <div className="flex gap-2 flex-wrap mb-3">
-        <span className="text-[11px] font-semibold bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full flex items-center gap-1 border border-gray-100 dark:border-gray-600">
+        <span
+          className="inline-flex items-center gap-1"
+          style={{
+            fontSize: 11,
+            fontWeight: 600,
+            background: "var(--alm-bg)",
+            color: "var(--alm-ink2)",
+            padding: "2px 8px",
+            border: "1px solid var(--alm-rule)",
+            borderRadius: 2,
+            fontFamily: "var(--font-mono, monospace)",
+          }}
+        >
           <MapPin className="w-2.5 h-2.5" /> {stopCount} stop{stopCount !== 1 ? "s" : ""}
         </span>
         {hasTiming && (
-          <span className="text-[11px] font-semibold bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full border border-blue-100 dark:border-blue-800">
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              background: "rgba(58,95,138,0.08)",
+              color: "var(--alm-blue)",
+              padding: "2px 8px",
+              border: "1px solid rgba(58,95,138,0.2)",
+              borderRadius: 2,
+              fontFamily: "var(--font-mono, monospace)",
+            }}
+          >
             {totalH > 0 ? `${totalH}h ${totalM}m` : `${totalM}m`}
           </span>
         )}
         {trip.departure_time && (
-          <span className="text-[11px] font-semibold bg-violet-50 text-violet-600 px-2 py-0.5 rounded-full flex items-center gap-1 border border-violet-100">
+          <span
+            className="inline-flex items-center gap-1"
+            style={{
+              fontSize: 11,
+              fontWeight: 600,
+              background: "rgba(192,138,53,0.1)",
+              color: "var(--alm-amber)",
+              padding: "2px 8px",
+              border: "1px solid rgba(192,138,53,0.25)",
+              borderRadius: 2,
+              fontFamily: "var(--font-mono, monospace)",
+            }}
+          >
             <Clock className="w-2.5 h-2.5" /> {formatTime12(trip.departure_time)}
           </span>
         )}
@@ -187,11 +317,28 @@ function TripCard({
         <button
           onClick={handleToggle}
           disabled={toggling}
-          className={`btn-tap flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-all border ${
-            trip.completed
-              ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-              : "bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200"
-          }`}
+          className="flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all"
+          style={{
+            borderRadius: 4,
+            border: `2px solid ${trip.completed ? "var(--alm-green)" : "var(--alm-rule)"}`,
+            background: trip.completed ? "rgba(74,124,89,0.1)" : "transparent",
+            color: trip.completed ? "var(--alm-green)" : "var(--alm-ink2)",
+            fontFamily: "var(--font-mono, monospace)",
+          }}
+          onMouseEnter={(e) => {
+            if (!trip.completed) {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--alm-green)";
+              (e.currentTarget as HTMLButtonElement).style.color = "var(--alm-green)";
+              (e.currentTarget as HTMLButtonElement).style.background = "rgba(74,124,89,0.08)";
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!trip.completed) {
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--alm-rule)";
+              (e.currentTarget as HTMLButtonElement).style.color = "var(--alm-ink2)";
+              (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+            }
+          }}
         >
           {toggling ? <Loader2 className="w-3 h-3 animate-spin" /> : trip.completed ? <CheckCircle2 className="w-3 h-3" /> : <Circle className="w-3 h-3" />}
           {trip.completed ? "Completed" : "Mark done"}
@@ -199,7 +346,14 @@ function TripCard({
 
         <MapsButton
           stops={stops}
-          className="btn-tap flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-semibold bg-gray-900 text-white hover:bg-gray-800 transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all"
+          style={{
+            borderRadius: 4,
+            border: "2px solid var(--alm-ink)",
+            background: "var(--alm-ink)",
+            color: "var(--alm-cream)",
+            fontFamily: "var(--font-mono, monospace)",
+          }}
         >
           <ExternalLink className="w-3 h-3" />
           Maps
@@ -207,7 +361,22 @@ function TripCard({
 
         <button
           onClick={e => { e.stopPropagation(); router.push(`/planner?trip=${trip.id}`); }}
-          className="btn-tap flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100 transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold transition-all"
+          style={{
+            borderRadius: 4,
+            border: "2px solid var(--alm-rule)",
+            background: "transparent",
+            color: "var(--alm-ink2)",
+            fontFamily: "var(--font-mono, monospace)",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--alm-ink)";
+            (e.currentTarget as HTMLButtonElement).style.color = "var(--alm-ink)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--alm-rule)";
+            (e.currentTarget as HTMLButtonElement).style.color = "var(--alm-ink2)";
+          }}
         >
           <Map className="w-3 h-3" />
           Plan
@@ -246,20 +415,40 @@ export default function TripsList({
 
   if (trips.length === 0) {
     return (
-      <div className="text-center py-20 animate-fade-in bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm border border-gray-100 dark:border-gray-700 rounded-3xl">
-        <div className="flex justify-center mb-5">
-          <div className="relative">
-            <div className="absolute inset-0 bg-blue-200/40 rounded-full blur-2xl animate-pulse-glow" />
-            <div className="relative bg-gradient-to-br from-blue-500 to-indigo-600 p-5 rounded-full shadow-lg">
-              <Navigation className="w-9 h-9 text-white" />
-            </div>
+      <div
+        className="animate-fade-in"
+        style={{
+          textAlign: "center",
+          padding: "80px 24px",
+          border: "2px solid var(--alm-rule)",
+          borderRadius: 4,
+          background: "var(--alm-cream)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
+          <div
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: "50%",
+              background: "var(--alm-ink)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "4px 4px 0 var(--alm-red)",
+            }}
+          >
+            <Navigation style={{ width: 32, height: 32, color: "var(--alm-cream)" }} />
           </div>
         </div>
-        <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">No trips yet</h3>
-        <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 max-w-sm mx-auto">
+        <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 11, letterSpacing: "0.2em", color: "var(--alm-red)", textTransform: "uppercase", marginBottom: 8 }}>
+          ★ Road log empty ★
+        </div>
+        <h3 className="alm-display" style={{ fontSize: 28, fontWeight: 400, color: "var(--alm-ink)", marginBottom: 8 }}>No trips yet</h3>
+        <p style={{ color: "var(--alm-ink2)", fontSize: 14, marginBottom: 24, maxWidth: 360, margin: "0 auto 24px" }}>
           Head to the planner to map your first road trip — pick stops, choose a route, and save it for later.
         </p>
-        <Link href="/planner" className="btn-shine btn-tap inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-2xl font-bold shadow-md hover:shadow-xl transition-shadow">
+        <Link href="/planner" className="alm-btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
           <ArrowRight className="w-4 h-4" /> Go to Planner
         </Link>
       </div>
@@ -268,31 +457,59 @@ export default function TripsList({
 
   return (
     <div>
-      {/* Filter chips */}
-      <div className="flex items-center gap-2 mb-6 animate-fade-in">
-        <div className="inline-flex items-center bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-100 dark:border-gray-700 rounded-full p-1 shadow-sm">
-          {(Object.keys(FILTER_LABELS) as Filter[]).map(f => {
-            const isActive = filter === f;
-            return (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`btn-tap px-4 py-1.5 rounded-full text-sm font-semibold transition-all flex items-center gap-2 ${
-                  isActive ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm" : "text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
-                }`}
+      {/* Filter tabs */}
+      <div className="flex items-center gap-0 mb-6 animate-fade-in" style={{ borderBottom: "2px solid var(--alm-rule)" }}>
+        {(Object.keys(FILTER_LABELS) as Filter[]).map(f => {
+          const isActive = filter === f;
+          return (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold transition-all"
+              style={{
+                fontFamily: "var(--font-mono, monospace)",
+                fontSize: 11,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: isActive ? "var(--alm-red)" : "var(--alm-ink2)",
+                background: "transparent",
+                border: "none",
+                borderBottom: isActive ? "2px solid var(--alm-red)" : "2px solid transparent",
+                marginBottom: -2,
+                cursor: "pointer",
+              }}
+            >
+              {FILTER_LABELS[f]}
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  padding: "1px 5px",
+                  borderRadius: 2,
+                  background: isActive ? "var(--alm-red)" : "var(--alm-rule)",
+                  color: isActive ? "var(--alm-cream)" : "var(--alm-ink2)",
+                }}
               >
-                {FILTER_LABELS[f]}
-                <span className={`text-[10px] font-bold tabular-nums px-1.5 py-0.5 rounded-full ${isActive ? "bg-white/25 text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"}`}>
-                  {counts[f]}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+                {counts[f]}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {filtered.length === 0 ? (
-        <div className="text-center py-12 text-gray-400 dark:text-gray-500 animate-fade-in bg-white/60 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700 rounded-2xl">
+        <div
+          className="animate-fade-in"
+          style={{
+            textAlign: "center",
+            padding: 48,
+            color: "var(--alm-ink2)",
+            border: "2px solid var(--alm-rule)",
+            borderRadius: 4,
+            fontFamily: "var(--font-mono, monospace)",
+            fontSize: 13,
+          }}
+        >
           No {filter} trips yet.
         </div>
       ) : (
