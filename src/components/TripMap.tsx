@@ -218,30 +218,6 @@ export default function TripMap({ stops, departureTime, arrivalTime, selectedRou
         ))}
       </GoogleMap>
 
-      {/* Overlay — total summary */}
-      {totals && (
-        <div className="absolute top-4 right-4 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 p-4 animate-scale-in min-w-[190px]">
-          <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">
-            {stops.length - 1} leg{stops.length > 2 ? "s" : ""} · total
-          </p>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wide font-semibold">Distance</p>
-              <p className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">{totals.distance}</p>
-            </div>
-            <div>
-              <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wide font-semibold">Drive time</p>
-              <p className="text-2xl font-extrabold text-gray-900 dark:text-white leading-tight">{totals.duration}</p>
-            </div>
-          </div>
-          {arrivalTime && (
-            <div className="flex items-center gap-1.5 mt-3 py-2 px-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
-              <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-              <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">Arrive ~{arrivalTime}</span>
-            </div>
-          )}
-        </div>
-      )}
 
       {error && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-red-50 border border-red-200 text-red-600 px-4 py-2 rounded-xl text-sm shadow-lg animate-slide-up">

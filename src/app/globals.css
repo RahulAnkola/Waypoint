@@ -102,6 +102,7 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: clip; /* clip, not hidden — hidden breaks position:sticky */
 }
 
 body {
@@ -110,6 +111,7 @@ body {
   font-family: var(--font-inter), Inter, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
 }
 
 /* Force ink text on all inputs — fixes invisible text on autofill/autocomplete */
@@ -510,8 +512,7 @@ input:-webkit-autofill:focus {
   .features-ledger,
   .stack-grid,
   .steps-grid,
-  .stats-grid,
-  .trips-stats {
+  .stats-grid {
     grid-template-columns: 1fr !important;
   }
   .stats-grid > div {
@@ -529,6 +530,135 @@ input:-webkit-autofill:focus {
   .footer-grid {
     grid-template-columns: 1fr !important;
   }
+}
+
+/* ── Trip detail summary strip ── */
+.trip-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+}
+
+@media (max-width: 768px) {
+  /* 6-unit grid: top 3 cells span 2 each, bottom 2 cells span 3 each */
+  .trip-summary-strip {
+    grid-template-columns: repeat(6, 1fr) !important;
+  }
+  .trip-summary-cell:nth-child(1),
+  .trip-summary-cell:nth-child(2),
+  .trip-summary-cell:nth-child(3) {
+    grid-column: span 2;
+  }
+  .trip-summary-cell:nth-child(4),
+  .trip-summary-cell:nth-child(5) {
+    grid-column: span 3;
+    border-top: 2px solid var(--alm-ink);
+  }
+  /* Fix borders */
+  .trip-summary-cell:nth-child(3) { border-right: none !important; }
+  .trip-summary-cell:nth-child(5) { border-right: none !important; }
+  .trip-summary-cell {
+    padding: 10px 12px !important;
+  }
+  .trip-summary-val {
+    font-size: 17px !important;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MOBILE — bottom tab bar + responsive overrides
+   ═══════════════════════════════════════════════════════════ */
+
+/* Navbar: sticky on desktop */
+.site-header { position: sticky; top: 0; z-index: 50; }
+
+/* Tab bar: hidden on desktop, shown on mobile */
+.mobile-tabbar { display: none !important; }
+
+@media (max-width: 768px) {
+  /* ── Show mobile tab bar ── */
+  .mobile-tabbar { display: flex !important; }
+
+  /* ── Footer: show on mobile but stack columns ── */
+  .desktop-footer { display: block !important; }
+
+  /* ── Navbar: hide links & right side, show logo only ── */
+  .nav-links,
+  .nav-right { display: none !important; }
+
+  /* ── Fix navbar to always stay visible on mobile ── */
+  .site-header { position: fixed; top: 0; left: 0; right: 0; z-index: 150; }
+
+  /* ── Push content below the fixed navbar ── */
+  main { padding-top: 64px; padding-bottom: 80px; overflow-x: clip; }
+
+  /* ── Ensure tab bar stays on top ── */
+  .mobile-tabbar { z-index: 200; }
+
+  /* ── Prevent sections overflowing horizontally ── */
+  main > * { max-width: 100%; }
+
+  /* ── Hero ── */
+  .hero-grid { padding: 32px 20px 28px !important; }
+
+  /* ── Trips grid ── */
+  .reviews-grid,
+  .contact-grid { grid-template-columns: 1fr !important; }
+
+  /* ── Trip detail sidebar hides on mobile ── */
+  .trip-detail-sidebar { display: none !important; }
+  .trip-detail-main { width: 100% !important; }
+
+  /* ── Footer: compact on mobile ── */
+  .footer-grid { grid-template-columns: 1fr !important; }
+
+  /* ── Planner: full-screen takeover on mobile ── */
+  .planner-container {
+    position: fixed !important;
+    top: 56px !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    height: auto !important;
+  }
+  .planner-mobile-tabs { display: flex !important; }
+
+  /* ── Section headings ── */
+  h1.alm-display {
+    font-size: clamp(36px, 11vw, 64px) !important;
+  }
+
+  /* ── Card action rows: single column ── */
+  .m-action-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Page padding ── */
+  .alm-page-pad {
+    padding: 20px 16px 24px !important;
+  }
+
+  /* ── Trip cards on trips page ── */
+  .trip-card-actions {
+    flex-wrap: wrap;
+  }
+
+  /* ── Trips stat cards: keep 3-col but compact ── */
+  .trips-stats {
+    gap: 8px !important;
+  }
+  .trips-stats > div {
+    padding: 10px 10px 12px !important;
+  }
+  .trips-stats .alm-display {
+    font-size: 28px !important;
+  }
+}
+
+/* ── Very small screens ── */
+@media (max-width: 420px) {
+  .footer-grid { grid-template-columns: 1fr !important; }
+  .reviews-grid,
+  .contact-grid { grid-template-columns: 1fr !important; }
 }
 
 /* ── reduced-motion safety ── */

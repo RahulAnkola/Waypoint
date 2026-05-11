@@ -4,6 +4,7 @@ export default function HomeFooter() {
   return (
     <>
       <footer
+        className="desktop-footer"
         style={{
           background: "var(--alm-cream)",
           borderTop: "2px solid var(--alm-ink)",
@@ -160,9 +161,6 @@ export default function HomeFooter() {
           >
             <span style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--alm-ink2)" }}>
               © {new Date().getFullYear()} Waypoint · All roads lead somewhere
-            </span>
-            <span style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--alm-ink2)" }}>
-              Vol. 04 · Spring &apos;26
             </span>
           </div>
         </div>

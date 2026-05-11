@@ -30,20 +30,20 @@ interface Props {
   tripContext: TripContext;
   containerRef: React.RefObject<HTMLDivElement | null>;
   onAddStop?: (name: string, address: string) => void;
+  standalone?: boolean;
 }
 
 const MIN_WIDTH = 280;
 const MAX_WIDTH_RATIO = 0.5;
 const DEFAULT_WIDTH = 340;
 
-export default function AiChat({ tripContext, containerRef, onAddStop }: Props) {
+export default function AiChat({ tripContext, containerRef, onAddStop, standalone = false }: Props) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<AiMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [panelWidth, setPanelWidth] = useState(DEFAULT_WIDTH);
   const [isDragging, setIsDragging] = useState(false);
-  // Track which suggestions have been added: key = `msgIdx-sugIdx`
   const [addedStops, setAddedStops] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -51,12 +51,12 @@ export default function AiChat({ tripContext, containerRef, onAddStop }: Props) 
   const dragStartWidth = useRef(0);
 
   useEffect(() => {
-    if (open) setTimeout(() => inputRef.current?.focus(), 50);
-  }, [open]);
+    if (open || standalone) setTimeout(() => inputRef.current?.focus(), 50);
+  }, [open, standalone]);
 
   useEffect(() => {
-    if (open) messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, open]);
+    if (open || standalone) messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, open, standalone]);
 
   const clampWidth = useCallback((w: number) => {
     const container = containerRef.current;
@@ -98,7 +98,6 @@ export default function AiChat({ tripContext, containerRef, onAddStop }: Props) 
     const next = [...messages, userMsg];
     setMessages(next);
     setLoading(true);
-
     try {
       const res = await fetch("/api/ai-chat", {
         method: "POST",
@@ -132,18 +131,287 @@ export default function AiChat({ tripContext, containerRef, onAddStop }: Props) 
     onAddStop?.(suggestion.name, suggestion.address);
   };
 
-  if (!open) {
+  /* ── Closed state (overlay mode only) ── */
+  if (!standalone && !open) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-4 py-2.5 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 shadow-lg hover:shadow-xl text-gray-700 dark:text-gray-200 text-sm font-semibold transition-all hover:border-violet-300 dark:hover:border-violet-500 hover:text-violet-700 dark:hover:text-violet-300 active:scale-[0.97]"
+        style={{
+          position: "absolute",
+          bottom: 16,
+          left: "50%",
+          transform: "translateX(-50%)",
+          zIndex: 10,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "10px 18px",
+          borderRadius: 999,
+          background: "var(--alm-cream)",
+          border: "2px solid var(--alm-ink)",
+          boxShadow: "3px 3px 0 var(--alm-red)",
+          color: "var(--alm-ink)",
+          fontFamily: "var(--font-mono, monospace)",
+          fontSize: 11,
+          letterSpacing: "0.14em",
+          fontWeight: 700,
+          textTransform: "uppercase",
+          cursor: "pointer",
+          whiteSpace: "nowrap",
+        }}
       >
-        <Sparkles className="w-4 h-4 text-violet-500" />
+        <Sparkles style={{ width: 13, height: 13, color: "var(--alm-red)", flexShrink: 0 }} />
         Ask AI about your trip
       </button>
     );
   }
 
+  /* ── Panel content (shared between overlay and standalone) ── */
+  const panelContent = (
+    <div style={{
+      flex: 1,
+      display: "flex",
+      flexDirection: "column",
+      background: "var(--alm-bg)",
+      borderLeft: standalone ? "none" : "2px solid var(--alm-rule)",
+      minWidth: 0,
+      overflow: "hidden",
+    }}>
+      {/* Header */}
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "12px 16px",
+        borderBottom: "2px solid var(--alm-rule)",
+        background: "var(--alm-cream)",
+        flexShrink: 0,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Sparkles style={{ width: 13, height: 13, color: "var(--alm-red)" }} />
+          <span style={{
+            fontFamily: "var(--font-mono, monospace)",
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            color: "var(--alm-ink)",
+          }}>
+            Trip AI
+          </span>
+          <span style={{
+            fontFamily: "var(--font-mono, monospace)",
+            fontSize: 9,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            background: "rgba(194,91,58,0.1)",
+            color: "var(--alm-red)",
+            border: "1.5px solid var(--alm-red)",
+            borderRadius: 3,
+            padding: "2px 6px",
+          }}>
+            Trip-only
+          </span>
+        </div>
+        {!standalone && (
+          <button
+            onClick={() => { setOpen(false); setMessages([]); setAddedStops(new Set()); }}
+            style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--alm-ink2)", display: "flex", padding: 4 }}
+          >
+            <X style={{ width: 15, height: 15 }} />
+          </button>
+        )}
+      </div>
+
+      {/* Messages */}
+      <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 12 }}>
+        {messages.length === 0 && (
+          <div style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100%",
+            textAlign: "center",
+            padding: 32,
+          }}>
+            <Sparkles style={{ width: 28, height: 28, color: "var(--alm-red)", marginBottom: 12, opacity: 0.45 }} />
+            <p style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 12, letterSpacing: "0.1em", color: "var(--alm-ink)", fontWeight: 700, marginBottom: 6 }}>
+              Ask anything about your trip
+            </p>
+            <p style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 11, color: "var(--alm-ink2)", lineHeight: 1.6 }}>
+              Food, gas, attractions,<br />rest stops, traffic…
+            </p>
+          </div>
+        )}
+
+        {messages.map((m, msgIdx) => (
+          <div key={msgIdx} style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: m.role === "user" ? "flex-end" : "flex-start" }}>
+            <div style={{
+              maxWidth: "88%",
+              padding: "10px 14px",
+              fontSize: 13,
+              lineHeight: 1.6,
+              whiteSpace: "pre-wrap",
+              borderRadius: 4,
+              ...(m.role === "user" ? {
+                background: "var(--alm-ink)",
+                color: "var(--alm-cream)",
+                border: "2px solid var(--alm-ink)",
+                boxShadow: "2px 2px 0 var(--alm-red)",
+              } : {
+                background: "var(--alm-cream)",
+                color: "var(--alm-ink)",
+                border: "2px solid var(--alm-rule)",
+              }),
+            }}>
+              {m.content}
+            </div>
+
+            {m.role === "model" && m.suggestions && m.suggestions.length > 0 && (
+              <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 8 }}>
+                {m.suggestions.map((s, sugIdx) => {
+                  const key = `${msgIdx}-${sugIdx}`;
+                  const added = addedStops.has(key);
+                  return (
+                    <div key={sugIdx} style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 8,
+                      background: "var(--alm-cream)",
+                      border: "2px solid var(--alm-rule)",
+                      borderRadius: 4,
+                      padding: "10px 12px",
+                    }}>
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: 8, minWidth: 0 }}>
+                        <MapPin style={{ width: 12, height: 12, color: "var(--alm-red)", flexShrink: 0, marginTop: 2 }} />
+                        <div style={{ minWidth: 0 }}>
+                          <p style={{ fontSize: 12, fontWeight: 700, color: "var(--alm-ink)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</p>
+                          <p style={{ fontSize: 11, color: "var(--alm-ink2)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.address}</p>
+                        </div>
+                      </div>
+                      {onAddStop && (
+                        <button
+                          onClick={() => handleAddStop(msgIdx, sugIdx, s)}
+                          disabled={added}
+                          style={{
+                            flexShrink: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                            fontFamily: "var(--font-mono, monospace)",
+                            fontSize: 10,
+                            letterSpacing: "0.12em",
+                            textTransform: "uppercase",
+                            fontWeight: 700,
+                            padding: "5px 10px",
+                            borderRadius: 3,
+                            cursor: added ? "default" : "pointer",
+                            border: `1.5px solid ${added ? "var(--alm-green)" : "var(--alm-red)"}`,
+                            color: added ? "var(--alm-green)" : "var(--alm-red)",
+                            background: "transparent",
+                          }}
+                        >
+                          {added
+                            ? <><Check style={{ width: 10, height: 10 }} /> Added</>
+                            : <><PlusCircle style={{ width: 10, height: 10 }} /> Add</>
+                          }
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ))}
+
+        {loading && (
+          <div style={{ display: "flex", justifyContent: "flex-start" }}>
+            <div style={{
+              background: "var(--alm-cream)",
+              border: "2px solid var(--alm-rule)",
+              borderRadius: 4,
+              padding: "10px 14px",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}>
+              <Loader2 style={{ width: 12, height: 12, color: "var(--alm-red)" }} className="animate-spin" />
+              <span style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 11, color: "var(--alm-ink2)" }}>Thinking…</span>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input */}
+      <div style={{
+        padding: "12px 16px",
+        borderTop: "2px solid var(--alm-rule)",
+        background: "var(--alm-cream)",
+        flexShrink: 0,
+      }}>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          border: "2px solid var(--alm-rule)",
+          borderRadius: 4,
+          padding: "8px 12px",
+          background: "var(--alm-bg)",
+        }}>
+          <input
+            ref={inputRef}
+            type="text"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={handleKey}
+            placeholder="Ask about your trip…"
+            style={{
+              flex: 1,
+              background: "transparent",
+              border: "none",
+              outline: "none",
+              fontSize: 13,
+              color: "var(--alm-ink)",
+              fontFamily: "inherit",
+              minWidth: 0,
+            }}
+          />
+          <button
+            onClick={send}
+            disabled={!input.trim() || loading}
+            style={{
+              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "transparent",
+              border: "none",
+              cursor: input.trim() && !loading ? "pointer" : "default",
+              color: input.trim() && !loading ? "var(--alm-red)" : "var(--alm-rule)",
+              padding: 4,
+            }}
+          >
+            <Send style={{ width: 16, height: 16 }} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  /* ── Standalone (mobile tab) ── */
+  if (standalone) {
+    return (
+      <div style={{ display: "flex", flex: 1, flexDirection: "column", overflow: "hidden" }}>
+        {panelContent}
+      </div>
+    );
+  }
+
+  /* ── Overlay panel (desktop) ── */
   return (
     <div
       className="absolute top-0 right-0 bottom-0 z-10 flex"
@@ -152,126 +420,22 @@ export default function AiChat({ tripContext, containerRef, onAddStop }: Props) 
       {/* Drag handle */}
       <div
         onMouseDown={startDrag}
-        className={`w-1.5 shrink-0 cursor-col-resize group flex items-center justify-center transition-colors ${isDragging ? "bg-violet-400" : "bg-gray-200 dark:bg-gray-700 hover:bg-violet-300 dark:hover:bg-violet-600"}`}
+        style={{
+          width: 6,
+          flexShrink: 0,
+          cursor: "col-resize",
+          background: isDragging ? "var(--alm-red)" : "var(--alm-rule)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "background 150ms",
+        }}
+        onMouseEnter={(e) => { if (!isDragging) (e.currentTarget as HTMLDivElement).style.background = "rgba(194,91,58,0.35)"; }}
+        onMouseLeave={(e) => { if (!isDragging) (e.currentTarget as HTMLDivElement).style.background = "var(--alm-rule)"; }}
       >
-        <GripVertical className={`w-3 h-3 transition-colors ${isDragging ? "text-white" : "text-gray-400 group-hover:text-violet-600 dark:group-hover:text-violet-300"}`} />
+        <GripVertical style={{ width: 12, height: 12, color: isDragging ? "var(--alm-cream)" : "var(--alm-ink2)" }} />
       </div>
-
-      {/* Panel */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-2xl min-w-0">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800 shrink-0">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-violet-500" />
-            <span className="text-sm font-bold text-gray-800 dark:text-gray-100">Trip AI</span>
-            <span className="text-[10px] bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-300 font-semibold px-1.5 py-0.5 rounded-full">Trip-only</span>
-          </div>
-          <button
-            onClick={() => { setOpen(false); setMessages([]); setAddedStops(new Set()); }}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
-          {messages.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <Sparkles className="w-8 h-8 text-violet-300 mb-2" />
-              <p className="text-sm font-semibold text-gray-600 dark:text-gray-300">Ask anything about your trip</p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Food, gas, attractions, rest stops, traffic…</p>
-            </div>
-          )}
-
-          {messages.map((m, msgIdx) => (
-            <div key={msgIdx} className={`flex flex-col gap-2 ${m.role === "user" ? "items-end" : "items-start"}`}>
-              {/* Bubble */}
-              <div
-                className={`max-w-[88%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
-                  m.role === "user"
-                    ? "bg-violet-600 text-white rounded-br-sm"
-                    : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-bl-sm"
-                }`}
-              >
-                {m.content}
-              </div>
-
-              {/* Suggestion cards — shown below AI messages */}
-              {m.role === "model" && m.suggestions && m.suggestions.length > 0 && (
-                <div className="w-full space-y-2 mt-1">
-                  {m.suggestions.map((s, sugIdx) => {
-                    const key = `${msgIdx}-${sugIdx}`;
-                    const added = addedStops.has(key);
-                    return (
-                      <div
-                        key={sugIdx}
-                        className="flex items-center justify-between gap-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2.5 shadow-sm"
-                      >
-                        <div className="flex items-start gap-2 min-w-0">
-                          <MapPin className="w-3.5 h-3.5 text-violet-400 shrink-0 mt-0.5" />
-                          <div className="min-w-0">
-                            <p className="text-xs font-semibold text-gray-800 dark:text-gray-100 truncate">{s.name}</p>
-                            <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">{s.address}</p>
-                          </div>
-                        </div>
-                        {onAddStop && (
-                          <button
-                            onClick={() => handleAddStop(msgIdx, sugIdx, s)}
-                            disabled={added}
-                            className={`shrink-0 flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg transition-all ${
-                              added
-                                ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
-                                : "bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400 border border-violet-200 dark:border-violet-800 hover:bg-violet-100 dark:hover:bg-violet-900/40 active:scale-95"
-                            }`}
-                          >
-                            {added
-                              ? <><Check className="w-3 h-3" /> Added</>
-                              : <><PlusCircle className="w-3 h-3" /> Add stop</>
-                            }
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          ))}
-
-          {loading && (
-            <div className="flex justify-start">
-              <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-bl-sm px-4 py-3 flex items-center gap-2">
-                <Loader2 className="w-3.5 h-3.5 text-violet-400 animate-spin" />
-                <span className="text-xs text-gray-400">Thinking…</span>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input */}
-        <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800 shrink-0">
-          <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2.5 focus-within:border-violet-400 dark:focus-within:border-violet-500 transition-colors">
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={handleKey}
-              placeholder="Ask about your trip…"
-              className="flex-1 bg-transparent text-sm text-gray-800 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 outline-none min-w-0"
-            />
-            <button
-              onClick={send}
-              disabled={!input.trim() || loading}
-              className="p-1.5 rounded-lg text-violet-600 hover:bg-violet-100 dark:hover:bg-violet-900/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors shrink-0"
-            >
-              <Send className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
+      {panelContent}
     </div>
   );
 }

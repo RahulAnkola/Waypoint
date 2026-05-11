@@ -15,7 +15,7 @@ import {
   Plus, Trash2, ExternalLink, Save, Loader2,
   AlertCircle, CheckCircle2, Clock, Navigation,
   ChevronUp, ChevronDown, Route, Copy, Pencil,
-  GripVertical, Banknote,
+  GripVertical, Banknote, Sparkles,
 } from "lucide-react";
 import {
   DndContext,
@@ -48,6 +48,7 @@ const clampSidebarWidth = (w: number) =>
 const TripMap = dynamic(() => import("@/components/TripMap"), { ssr: false });
 const TollBadge = dynamic(() => import("@/components/TollBadge"), { ssr: false });
 const AiChat = dynamic(() => import("@/components/AiChat"), { ssr: false });
+const PlannerMobile = dynamic(() => import("@/components/PlannerMobile"), { ssr: false });
 import { fetchTollEstimate } from "@/lib/tollUtils";
 const LIBRARIES: ("places" | "geometry")[] = ["places"];
 
@@ -273,6 +274,8 @@ const labelStyle: React.CSSProperties = {
   marginBottom: 6,
 };
 
+type MobileTab = "route" | "map" | "ai";
+
 function PlannerInner() {
   const { isLoaded, loadError } = useJsApiLoader({
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
@@ -281,6 +284,15 @@ function PlannerInner() {
 
   const searchParams = useSearchParams();
   const tripId = searchParams.get("trip");
+  const [mobileTab, setMobileTab] = useState<MobileTab>("route");
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   const [origin, setOrigin] = useState<PlaceResult | null>(null);
   const [destination, setDestination] = useState<PlaceResult | null>(null);
@@ -603,6 +615,72 @@ function PlannerInner() {
     );
   }
 
+  /* ── Helper for adding a stop from AI (shared between mobile and desktop) ── */
+  const addStopFromAI = (name: string, address: string) => {
+    if (!window.google?.maps) return;
+    new window.google.maps.Geocoder().geocode(
+      { address: `${name}, ${address}` },
+      (results, status) => {
+        if (status === "OK" && results?.[0]) {
+          const loc = results[0].geometry.location;
+          setWaypoints(prev => [
+            ...prev,
+            { id: `wp-${++wpIdCounter.current}`, place: { address: results[0].formatted_address, lat: loc.lat(), lng: loc.lng() } },
+          ]);
+        }
+      }
+    );
+  };
+
+  /* ── Mobile layout (bottom-sheet + full-screen map) ── */
+  if (isMobile) {
+    return (
+      <>
+        {tripId && <PlannerLoader tripId={tripId} onLoaded={handleTripLoaded} />}
+        <PlannerMobile
+          origin={origin}
+          destination={destination}
+          waypoints={waypoints}
+          stops={stops}
+          setOrigin={setOrigin}
+          setDestination={setDestination}
+          setWaypoints={setWaypoints}
+          addWaypoint={addWaypoint}
+          removeWaypoint={removeWaypoint}
+          updateWaypoint={updateWaypoint}
+          departureDate={departureDate}
+          departureTime={departureTime}
+          setDepartureDate={setDepartureDate}
+          setDepartureTime={setDepartureTime}
+          stepTime={stepTime}
+          legInfos={legInfos}
+          selectedRoutePerLeg={selectedRoutePerLeg}
+          handleLegRouteSelect={handleLegRouteSelect}
+          onAllLegsLoaded={handleAllLegsLoaded}
+          totalSeconds={totalSeconds}
+          distanceUnit={distanceUnit}
+          mapsApp={mapsApp}
+          tripContext={tripContext}
+          user={user}
+          tripId={tripId}
+          tripName={tripName}
+          setTripName={setTripName}
+          saving={saving}
+          savingNew={savingNew}
+          saveStatus={saveStatus}
+          saveError={saveError}
+          handleSave={handleSave}
+          handleSaveAsNew={handleSaveAsNew}
+          canSave={!!canSave}
+          canOpenMaps={canOpenMaps}
+          wpIdCounter={wpIdCounter}
+          onAddStopFromAI={addStopFromAI}
+        />
+      </>
+    );
+  }
+
+  /* ── Desktop layout ── */
   return (
     <div ref={layoutRef} className="flex overflow-hidden" style={{ height: "calc(100vh - 64px)" }}>
       {tripId && <PlannerLoader tripId={tripId} onLoaded={handleTripLoaded} />}
@@ -1096,46 +1174,28 @@ function PlannerInner() {
         </div>
       </aside>
 
-      {/* ── Drag handle: drag to resize, double-click to reset ── */}
+      {/* ── Drag handle ── */}
       <div
         role="separator"
         aria-orientation="vertical"
         aria-label="Resize sidebar"
         title="Drag to resize · Double-click to reset"
-        onMouseDown={(e) => {
-          e.preventDefault();
-          setIsResizing(true);
-        }}
+        onMouseDown={(e) => { e.preventDefault(); setIsResizing(true); }}
         onDoubleClick={() => setSidebarWidth(SIDEBAR_DEFAULT_WIDTH)}
-        style={{
-          width: 6,
-          flexShrink: 0,
-          cursor: "col-resize",
-          background: isResizing ? "var(--alm-red)" : "var(--alm-rule)",
-          position: "relative",
-          transition: "background 150ms",
-        }}
+        style={{ width: 6, flexShrink: 0, cursor: "col-resize", background: isResizing ? "var(--alm-red)" : "var(--alm-rule)", position: "relative", transition: "background 150ms" }}
         className="group"
         onMouseEnter={(e) => { if (!isResizing) (e.currentTarget as HTMLDivElement).style.background = "rgba(194,91,58,0.35)"; }}
         onMouseLeave={(e) => { if (!isResizing) (e.currentTarget as HTMLDivElement).style.background = "var(--alm-rule)"; }}
       >
-        {/* Visual grip — appears on hover/drag */}
         <div
-          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-4 h-10 transition-opacity ${
-            isResizing ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-          }`}
-          style={{
-            borderRadius: 4,
-            background: "var(--alm-cream)",
-            border: "2px solid var(--alm-rule)",
-            boxShadow: "1px 1px 0 var(--alm-rule)",
-          }}
+          className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center w-4 h-10 transition-opacity ${isResizing ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+          style={{ borderRadius: 4, background: "var(--alm-cream)", border: "2px solid var(--alm-rule)", boxShadow: "1px 1px 0 var(--alm-rule)" }}
         >
           <GripVertical className="w-3 h-3" style={{ color: "var(--alm-ink2)" }} />
         </div>
       </div>
 
-      {/* Map */}
+      {/* ── Map ── */}
       <div ref={mapContainerRef} className="flex-1 relative">
         <TripMap
           stops={stops}
@@ -1149,15 +1209,7 @@ function PlannerInner() {
         {stops.length < 2 && (
           <div
             className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2 px-4 py-2.5 pointer-events-none select-none"
-            style={{
-              borderRadius: 999,
-              background: "rgba(250,243,231,0.92)",
-              border: "2px solid var(--alm-rule)",
-              boxShadow: "2px 2px 0 var(--alm-rule)",
-              color: "var(--alm-ink2)",
-              fontSize: 13,
-              fontFamily: "var(--font-mono, monospace)",
-            }}
+            style={{ borderRadius: 999, background: "rgba(250,243,231,0.92)", border: "2px solid var(--alm-rule)", boxShadow: "2px 2px 0 var(--alm-rule)", color: "var(--alm-ink2)", fontSize: 13, fontFamily: "var(--font-mono, monospace)" }}
           >
             <svg className="w-4 h-4 shrink-0" style={{ color: "var(--alm-red)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
             Enter origin and destination to chat with AI
@@ -1167,28 +1219,7 @@ function PlannerInner() {
           <AiChat
             tripContext={tripContext}
             containerRef={mapContainerRef}
-            onAddStop={(name, address) => {
-              if (!window.google?.maps) return;
-              new window.google.maps.Geocoder().geocode(
-                { address: `${name}, ${address}` },
-                (results, status) => {
-                  if (status === "OK" && results?.[0]) {
-                    const loc = results[0].geometry.location;
-                    setWaypoints(prev => [
-                      ...prev,
-                      {
-                        id: `wp-${++wpIdCounter.current}`,
-                        place: {
-                          address: results[0].formatted_address,
-                          lat: loc.lat(),
-                          lng: loc.lng(),
-                        },
-                      },
-                    ]);
-                  }
-                }
-              );
-            }}
+            onAddStop={addStopFromAI}
           />
         )}
       </div>

@@ -50,19 +50,6 @@ export default async function Home() {
             >
               {/* Left: copy */}
               <div>
-                <div
-                  style={{
-                    fontFamily: "var(--font-mono, monospace)",
-                    fontSize: 11,
-                    letterSpacing: "0.3em",
-                    color: "var(--alm-red)",
-                    textTransform: "uppercase",
-                    marginBottom: 16,
-                  }}
-                >
-                  ◆ The Road-Trip Almanac · Issue 04 ◆
-                </div>
-
                 <HeroRotatingHeadline />
 
                 <p
@@ -198,12 +185,10 @@ export default async function Home() {
             {/* Section header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 40, borderBottom: "2px solid var(--alm-ink)", paddingBottom: 16 }}>
               <div>
-                <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 10, letterSpacing: "0.3em", color: "var(--alm-red)", textTransform: "uppercase", marginBottom: 8 }}>Chapter Two</div>
                 <h2 className="alm-display" style={{ fontSize: "clamp(32px, 5vw, 56px)", lineHeight: 0.95, margin: 0, fontWeight: 400, letterSpacing: "-0.02em" }}>
                   Everything for <em style={{ color: "var(--alm-red)" }}>the trip.</em><br />Nothing you don&apos;t need.
                 </h2>
               </div>
-              <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 11, color: "var(--alm-ink2)", letterSpacing: "0.18em", textTransform: "uppercase" }}>§ 02 · The Kit</div>
             </div>
 
             {/* Feature cards */}
@@ -261,12 +246,10 @@ export default async function Home() {
             {/* Section header */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 48, borderBottom: "2px solid var(--alm-ink)", paddingBottom: 16 }}>
               <div>
-                <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 10, letterSpacing: "0.3em", color: "var(--alm-red)", textTransform: "uppercase", marginBottom: 8 }}>Chapter Three</div>
                 <h2 className="alm-display" style={{ fontSize: "clamp(32px, 5vw, 56px)", lineHeight: 0.95, margin: 0, fontWeight: 400, letterSpacing: "-0.02em" }}>
                   Three steps. <em style={{ color: "var(--alm-red)" }}>One open road.</em>
                 </h2>
               </div>
-              <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 11, color: "var(--alm-ink2)", letterSpacing: "0.18em", textTransform: "uppercase" }}>§ 03 · The Method</div>
             </div>
 
             {/* Steps */}
@@ -321,12 +304,10 @@ export default async function Home() {
           <div style={{ maxWidth: 1100, margin: "0 auto", padding: "64px 28px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 40, borderBottom: "2px solid var(--alm-ink)", paddingBottom: 16 }}>
               <div>
-                <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 10, letterSpacing: "0.3em", color: "var(--alm-red)", textTransform: "uppercase", marginBottom: 8 }}>Field Notes</div>
                 <h2 className="alm-display" style={{ fontSize: "clamp(32px, 5vw, 52px)", lineHeight: 0.95, margin: 0, fontWeight: 400, letterSpacing: "-0.02em" }}>
                   From the road
                 </h2>
               </div>
-              <div style={{ fontFamily: "var(--font-mono, monospace)", fontSize: 11, color: "var(--alm-ink2)", letterSpacing: "0.18em", textTransform: "uppercase" }}>§ 04 · Trip log entries</div>
             </div>
             <div style={{ maxWidth: 800 }}>
               <AlmRotatingQuote quotes={ALM_QUOTES} />

@@ -685,12 +685,11 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(5, 1fr)",
               border: "2px solid var(--alm-ink)",
               background: "var(--alm-cream)",
               marginBottom: 8,
             }}
-            className="trips-stats"
+            className="trip-summary-strip"
           >
             {[
               ["DRIVE TIME", totalH > 0 ? `${totalH}h ${totalM}m` : `${totalM}m`, "var(--alm-ink)"],
@@ -704,12 +703,13 @@ export default function TripDetailClient({ trip }: { trip: Trip }) {
                 <div
                   key={label}
                   style={{
-                    padding: "14px 16px",
+                    padding: "12px 14px",
                     borderRight: i < arr.length - 1 ? "2px solid var(--alm-ink)" : "none",
                   }}
+                  className="trip-summary-cell"
                 >
                   <div style={{ ...monoLabel, fontSize: 9, marginBottom: 4 }}>{label}</div>
-                  <div className="alm-display" style={{ fontSize: 22, lineHeight: 1, color, letterSpacing: "-0.01em" }}>
+                  <div className="alm-display trip-summary-val" style={{ fontSize: 22, lineHeight: 1.15, color, letterSpacing: "-0.01em" }}>
                     {label === "TOLLS" ? <TripTollTotal stops={stops} legRoutes={legRoutes} /> : val}
                   </div>
                 </div>

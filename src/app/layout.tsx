@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import ScrollProgress from "@/components/ScrollProgress";
 import ThemeProvider from "@/components/ThemeProvider";
 import FooterWrapper from "@/components/FooterWrapper";
+import MobileTabBar from "@/components/MobileTabBar";
 import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -38,6 +39,7 @@ export default function RootLayout({
           <Navbar />
           <main>{children}</main>
           <FooterWrapper />
+          <MobileTabBar />
           <Analytics />
         </ThemeProvider>
       </body>
