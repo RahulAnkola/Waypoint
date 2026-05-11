@@ -7,6 +7,7 @@ import ThemeProvider from "@/components/ThemeProvider";
 import FooterWrapper from "@/components/FooterWrapper";
 import MobileTabBar from "@/components/MobileTabBar";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const dmSerif = DM_Serif_Display({
@@ -41,6 +42,7 @@ export default function RootLayout({
           <FooterWrapper />
           <MobileTabBar />
           <Analytics />
+          <SpeedInsights />
         </ThemeProvider>
       </body>
     </html>
