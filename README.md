@@ -2,7 +2,7 @@
 
 A road trip planner built for people who actually drive. Plan routes, save trips, and get AI-powered suggestions — all in one place.
 
-**Live:** [waypoint-rouge.vercel.app](https://waypoint-rouge.vercel.app)
+**Live:** [waypoint-blush.vercel.app](https://waypoint-blush.vercel.app)
 
 ---
 
